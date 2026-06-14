@@ -1,538 +1,882 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Life Memory</title>
 <style>
-:root{
-  --bg:#F7F7F2;
-  --surface:#FFFFFF;
-  --surface-soft:#F3F6FB;
-  --navy:#1E3A5F;
-  --navy-2:#0F2D52;
-  --green:#3FA37A;
-  --green-soft:#EAF6F0;
-  --blue-soft:#EDF3FF;
-  --amber:#F59E0B;
-  --amber-soft:#FFF6E6;
-  --red:#DC2626;
-  --red-soft:#FEECEC;
-  --text:#111827;
-  --muted:#6B7280;
-  --light:#9CA3AF;
-  --line:#E7EAF0;
-  --shadow:0 12px 30px rgba(30,58,95,.08),0 2px 8px rgba(30,58,95,.05);
-  --shadow-soft:0 6px 18px rgba(30,58,95,.06);
-  --radius:22px;
-  --nav-h:82px;
-  --safe-bottom:env(safe-area-inset-bottom,0px);
+/* ═══════════════════════════════════
+   DESIGN SYSTEM — Lumière · Sérénité · Confiance
+   Palette: fond ivoire, cartes blanches, bleu nuit #1E3A5F, vert doux #3FA37A
+   Référence: Apple · Notion · Calm
+════════════════════════════════════ */
+:root {
+  /* Fonds */
+  --bg: #F5F4F0;
+  --bg-card: #FFFFFF;
+  --bg-card-2: #F8F7F4;
+  --bg-subtle: #EEECEA;
+
+  /* Bordures */
+  --border: rgba(30,58,95,0.08);
+  --border-strong: rgba(30,58,95,0.14);
+
+  /* Texte */
+  --text-primary: #1A2636;
+  --text-secondary: #5C6B7A;
+  --text-muted: #9BAAB8;
+
+  /* Couleurs sémantiques */
+  --navy: #1E3A5F;
+  --navy-dim: rgba(30,58,95,0.08);
+  --navy-mid: rgba(30,58,95,0.15);
+
+  --green: #3FA37A;
+  --green-dim: rgba(63,163,122,0.10);
+  --green-mid: rgba(63,163,122,0.18);
+
+  --amber: #C47D2B;
+  --amber-dim: rgba(196,125,43,0.10);
+
+  --red: #C0392B;
+  --red-dim: rgba(192,57,43,0.09);
+
+  /* Rétro-compat accent → navy */
+  --accent: #1E3A5F;
+  --accent-glow: rgba(30,58,95,0.12);
+  --accent-dim: rgba(30,58,95,0.08);
+
+  /* Layout */
+  --nav-h: 72px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow-card: 0 1px 3px rgba(30,58,95,0.06), 0 4px 16px rgba(30,58,95,0.05);
+  --shadow-card-hover: 0 2px 8px rgba(30,58,95,0.10), 0 8px 24px rgba(30,58,95,0.08);
 }
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
-.app{height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at top right,rgba(63,163,122,.10),transparent 32%),var(--bg)}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow: hidden;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.app-shell { display: flex; flex-direction: column; height: 100dvh; overflow: hidden; }
+.screens { flex: 1; overflow: hidden; position: relative; }
+
+.screen {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 24px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s ease;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.screen::-webkit-scrollbar { display: none; }
+.screen.active { opacity: 1; pointer-events: all; }
 
 /* ── DEMO BANNER ── */
-.demo-banner{background:#FFFBF0;border-bottom:1px solid rgba(245,158,11,.2);padding:7px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.demo-banner-text{font-size:11px;font-weight:700;color:var(--amber);display:flex;align-items:center;gap:6px}
-.demo-toggle-btn{font-size:11px;font-weight:700;padding:5px 12px;border-radius:9px;border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.08);color:var(--amber);cursor:pointer;font-family:inherit}
-.demo-toggle-btn:active{transform:scale(.95)}
+.demo-banner {
+  background: #FFF8EC;
+  border-bottom: 1px solid rgba(196,125,43,0.18);
+  padding: 8px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; z-index: 50;
+}
+.demo-banner-text { font-size: 12px; font-weight: 600; color: var(--amber); display: flex; align-items: center; gap: 6px; }
+.demo-toggle-btn {
+  font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 8px;
+  border: 1px solid rgba(196,125,43,0.25); background: rgba(196,125,43,0.08);
+  color: var(--amber); cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.demo-toggle-btn:active { transform: scale(0.95); }
 
-/* ── SCREENS ── */
-.screens{flex:1;position:relative;overflow:hidden}
-.screen{position:absolute;inset:0;overflow-y:auto;opacity:0;pointer-events:none;padding:18px 20px calc(var(--nav-h) + var(--safe-bottom) + 22px);transition:.22s ease;scrollbar-width:none}
-.screen::-webkit-scrollbar{display:none}
-.screen.active{opacity:1;pointer-events:auto}
-
-/* ── STATUS BAR ── */
-.statusbar{height:24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#0B1730;margin-bottom:20px}
-.status-icons{letter-spacing:1px;font-size:12px}
-
-/* ── TYPOGRAPHY ── */
-.top-row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px}
-.hello h1,.title h1{font-size:30px;line-height:1.12;letter-spacing:-.8px;color:var(--navy);font-weight:800}
-.hello p,.title p{font-size:14px;line-height:1.55;color:var(--muted);margin-top:8px}
-.round-info{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff;color:var(--navy);font-weight:800;box-shadow:var(--shadow-soft)}
-.section-head{display:flex;justify-content:space-between;align-items:center;margin:26px 0 12px}
-.section-title{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--navy);font-weight:800}
-.section-link{font-size:13px;font-weight:700;color:var(--navy);cursor:pointer}
-
-/* ── DEMO PILL ── */
-.demo-pill{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:#14724E;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:700;margin:0 auto 22px;box-shadow:0 5px 14px rgba(63,163,122,.10);cursor:pointer}
-.demo-dot{width:9px;height:9px;background:var(--green);border-radius:50%}
-.demo-dot.amber{background:var(--amber)}
-
-/* ── ENGINE ── */
-.vigilance{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 16px;font-size:14px;font-weight:700;color:#14724E;box-shadow:var(--shadow);margin-bottom:28px}
-.vigilance-dot{width:13px;height:13px;background:var(--green);border-radius:50%;box-shadow:0 0 0 5px var(--green-soft)}
-
-/* ── HORIZON CARD ── */
-.horizon-card{position:relative;border-radius:24px;padding:24px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:18px;margin-bottom:26px;overflow:hidden;cursor:pointer}
-.horizon-card:after{content:'';position:absolute;right:-36px;top:-46px;width:126px;height:126px;border-radius:50%}
-.horizon-card.stable{background:linear-gradient(145deg,#EAF7F0,#FBFFFD);border:1px solid #DCEFE6}
-.horizon-card.stable:after{background:rgba(63,163,122,.10)}
-.horizon-card.surveiller{background:linear-gradient(145deg,#FFF8EE,#FFFDF9);border:1px solid #F0DFC0}
-.horizon-card.surveiller:after{background:rgba(245,158,11,.10)}
-.horizon-card.charge{background:linear-gradient(145deg,#FEF0EE,#FFFAF9);border:1px solid #F0CECA}
-.horizon-card.charge:after{background:rgba(220,38,38,.10)}
-.shield{width:62px;height:72px;position:relative;flex:0 0 auto}
-.shield svg{width:100%;height:100%;display:block}
-.horizon-text h2{font-size:20px;letter-spacing:-.3px;margin-bottom:6px;font-weight:800}
-.horizon-text h2.stable{color:#17684B}
-.horizon-text h2.surveiller{color:#B46200}
-.horizon-text h2.charge{color:var(--red)}
-.horizon-text p{font-size:13px;line-height:1.55;color:#24745A}
-.horizon-text p.surveiller{color:#8A5200}
-.horizon-text p.charge{color:var(--red)}
-.chev{margin-left:auto;color:var(--navy);font-size:22px;z-index:1;flex-shrink:0}
-
-/* ── CARDS & LISTS ── */
-.card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
-.list-item{display:flex;align-items:center;gap:14px;padding:17px 16px;border-bottom:1px solid var(--line)}
-.list-item:last-child{border-bottom:none}
-.iconbox{width:44px;height:44px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
-.item-main{flex:1;min-width:0}
-.item-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:5px}
-.item-sub{font-size:12.5px;color:var(--muted);line-height:1.35}
-
-/* ── TAGS / BADGES ── */
-.tag{font-size:12px;font-weight:800;padding:7px 11px;border-radius:11px;white-space:nowrap;flex-shrink:0}
-.tag.active{background:var(--blue-soft);color:var(--navy)}
-.tag.watch{background:var(--amber-soft);color:#B46200}
-.tag.done{background:var(--green-soft);color:#18724F}
-.tag.archive{background:#F1F3F6;color:#4B5563}
-.tag.danger{background:var(--red-soft);color:var(--red)}
-.tag.annule{background:#F1F3F6;color:#9CA3AF;text-decoration:line-through}
-
-/* ── ACTIONS ROW ── */
-.action-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
-.action-btn{display:inline-flex;align-items:center;gap:4px;padding:7px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface-soft);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap}
-.action-btn:active{transform:scale(.95)}
-.action-btn.fait{background:var(--green-soft);border-color:rgba(63,163,122,.2);color:#18724F}
-.action-btn.reporter{background:var(--amber-soft);border-color:rgba(245,158,11,.2);color:#B46200}
-.action-btn.partager{background:var(--blue-soft);border-color:rgba(30,58,95,.15);color:var(--navy)}
-.action-btn.annuler{background:var(--red-soft);border-color:rgba(220,38,38,.15);color:var(--red)}
-
-/* ── CANCELLED NOTICE ── */
-.cancelled-notice{margin:8px 0 4px;padding:11px 14px;border-radius:12px;background:#FEF3F2;border:1px solid rgba(220,38,38,.15);font-size:12.5px;color:var(--muted);line-height:1.5;display:flex;gap:9px;align-items:flex-start}
-.cancelled-notice-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-
-/* ── BIG ACTION ── */
-.big-action{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px 16px;margin-top:26px;box-shadow:var(--shadow);cursor:pointer}
-.big-action h3{font-size:15px;color:var(--navy);font-weight:800;margin-bottom:5px}
-.big-action p{font-size:12.5px;color:var(--muted);line-height:1.45}
-
-/* ── PROMO CARD ── */
-.promo-card{background:linear-gradient(145deg,#F0F5FF,#FFFFFF);border:1px solid #DDE7F6;border-radius:22px;box-shadow:var(--shadow);overflow:hidden;cursor:pointer;margin-bottom:14px}
-.promo-card-inner{padding:18px 16px}
-.promo-header{display:flex;align-items:center;gap:13px;margin-bottom:12px}
-.promo-brand{width:50px;height:50px;border-radius:14px;background:linear-gradient(145deg,#0C3872,#1E3A5F);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0}
-.promo-title{font-size:15px;font-weight:900;color:var(--navy)}
-.promo-sub{font-size:12px;color:var(--muted);margin-top:3px}
-.promo-timeline{display:flex;flex-direction:column;gap:8px;margin:12px 0}
-.promo-step{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted)}
-.promo-step-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.promo-alerts{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
-.promo-tap-hint{font-size:12px;color:var(--navy);font-weight:700;text-align:right;margin-top:10px}
-
-/* ── FORFAIT DETAIL SHEET ── */
-.detail-sheet{position:fixed;inset:0;background:var(--bg);z-index:150;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);overflow-y:auto;scrollbar-width:none;max-width:430px;margin:0 auto}
-.detail-sheet::-webkit-scrollbar{display:none}
-.detail-sheet.open{transform:translateY(0)}
-.detail-sheet-header{padding:56px 20px 18px;background:linear-gradient(to bottom,var(--bg) 75%,transparent);position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:14px}
-.detail-back-btn{width:36px;height:36px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;box-shadow:var(--shadow-soft)}
-.detail-back-btn:active{background:var(--surface-soft)}
-.detail-sheet-title{font-size:22px;font-weight:800;color:var(--navy);letter-spacing:-.4px}
-.detail-metric-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 20px 14px}
-.detail-metric{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow-soft)}
-.detail-metric-label{font-size:10px;color:var(--light);font-weight:800;letter-spacing:.6px;text-transform:uppercase}
-.detail-metric-value{font-size:20px;font-weight:800;color:var(--text);margin-top:5px;letter-spacing:-.4px}
-.detail-metric-sub{font-size:11px;color:var(--muted);margin-top:2px}
-.timeline-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin:0 20px 14px;box-shadow:var(--shadow-soft)}
-.tl-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start}
-.tl-item:last-child{border-bottom:none}
-.tl-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
-.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.tl-connector{width:1px;flex:1;min-height:20px;background:var(--line);margin:4px 0}
-.tl-item:last-child .tl-connector{display:none}
-.tl-content{flex:1}
-.tl-date{font-size:10px;font-weight:800;color:var(--light);text-transform:uppercase;letter-spacing:.6px}
-.tl-label{font-size:13px;color:var(--navy);margin-top:2px;font-weight:700}
-.tl-detail{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
-.alerts-card{background:linear-gradient(145deg,#F0F5FF,#FFFFFF);border:1px solid #DDE7F6;border-radius:var(--radius);padding:18px;margin:0 20px 14px;box-shadow:var(--shadow-soft)}
-.alert-item{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)}
-.alert-item:last-child{border-bottom:none}
-.alert-text{flex:1;font-size:13px;color:var(--navy)}
-.alert-status{font-size:11px;font-weight:700}
-.status-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 20px 14px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-soft)}
-
-/* ── MA VIE DOMAINS ── */
-.domain-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.domain-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;cursor:pointer;box-shadow:var(--shadow-soft);transition:all .15s;position:relative;overflow:hidden}
-.domain-card:active{transform:scale(.97);box-shadow:var(--shadow)}
-.domain-card-icon{font-size:26px;margin-bottom:12px}
-.domain-card-name{font-size:14px;font-weight:800;color:var(--navy)}
-.domain-card-count{font-size:12px;color:var(--muted);margin-top:3px}
-.domain-bar{height:4px;background:var(--line);border-radius:4px;margin-top:14px;overflow:hidden}
-.domain-fill{height:100%;border-radius:4px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.domain-alert{position:absolute;top:12px;right:12px;width:8px;height:8px;background:var(--amber);border-radius:50%;box-shadow:0 0 0 2px var(--surface)}
-.domain-detail{position:absolute;inset:0;background:var(--bg);z-index:50;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;scrollbar-width:none}
-.domain-detail::-webkit-scrollbar{display:none}
-.domain-detail.open{transform:translateX(0)}
-.domain-detail-header{padding:56px 20px 18px;display:flex;align-items:center;gap:14px}
-.domain-back{width:36px;height:36px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;box-shadow:var(--shadow-soft)}
-.domain-detail-title{font-size:24px;font-weight:800;color:var(--navy);letter-spacing:-.4px}
-.resp-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 20px 12px;box-shadow:var(--shadow-soft)}
-.resp-row{display:flex;align-items:flex-start;gap:13px}
-.resp-icon{font-size:20px;flex-shrink:0;margin-top:1px}
-.resp-content{flex:1}
-.resp-title{font-size:14px;font-weight:800;color:var(--navy)}
-.resp-sub{font-size:12px;color:var(--muted);margin-top:2px}
-
-/* ── RETENIR ── */
-.quick-chips{display:flex;gap:8px;padding:4px 0 14px;overflow-x:auto;scrollbar-width:none;margin:0 -4px;padding-left:4px}
-.quick-chips::-webkit-scrollbar{display:none}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--shadow-soft);transition:all .15s}
-.chip:active{background:var(--blue-soft);border-color:rgba(30,58,95,.2)}
-.capture-panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:26px;padding:18px;margin-top:8px}
-.capture-area{width:100%;min-height:132px;border:0;background:#F8FAFD;border-radius:20px;padding:16px;font:inherit;font-size:15px;line-height:1.55;color:var(--text);outline:none;resize:none}
-.capture-area::placeholder{color:var(--light)}
-.capture-actions{display:flex;gap:10px;margin-top:14px}
-.small-btn{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;font-size:13px;font-weight:800;color:var(--navy);cursor:pointer;font-family:inherit}
-.primary-btn{border:0;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;font-size:13px;font-weight:900;box-shadow:0 8px 20px rgba(30,58,95,.20);cursor:pointer;font-family:inherit}
-.primary-btn:active{transform:scale(.96)}
-.ai-card{display:none;margin-top:18px;background:linear-gradient(145deg,#F0F5FF,#FFFFFF);border:1px solid #DDE7F6;border-radius:22px;padding:16px}
-.ai-card.show{display:block}
-.ai-title{font-size:12px;text-transform:uppercase;letter-spacing:.7px;font-weight:900;color:var(--navy);margin-bottom:10px}
-.ai-card p{font-size:14px;color:var(--text);line-height:1.55}
-.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.ai-field{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}
-.ai-label{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:5px}
-.ai-val{font-size:13px;color:var(--navy);font-weight:900}
-.ai-actions{display:flex;gap:10px;margin-top:14px}
-
-/* ── MÉMOIRE ── */
-.mem-search{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:0 16px;height:46px;box-shadow:var(--shadow-soft);margin-bottom:14px}
-.mem-search input{flex:1;border:none;background:none;outline:none;font:inherit;font-size:15px;color:var(--text)}
-.mem-search input::placeholder{color:var(--light)}
-.filter-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-bottom:14px;padding-bottom:2px}
-.filter-row::-webkit-scrollbar{display:none}
-.filter-pill{padding:7px 14px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:var(--shadow-soft);transition:all .15s}
-.filter-pill.active{background:var(--navy);border-color:var(--navy);color:#fff}
-.mem-item{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:12px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow-soft)}
-.mem-item.fait .mem-title{text-decoration:line-through;color:var(--light)}
-.mem-item.annule{opacity:.4}
-.mem-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
-.mem-content{flex:1}
-.mem-title{font-size:14px;font-weight:800;color:var(--navy);line-height:1.3}
-.mem-ctx{font-size:12px;color:var(--muted);margin-top:3px}
-.mem-status-row{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap;align-items:center}
-.mem-next{font-size:12px;font-weight:700;color:var(--navy);margin-top:5px}
-
-/* ── RECHERCHE ── */
-.search-wrap{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:0 18px;height:52px;box-shadow:var(--shadow-soft);margin-bottom:20px}
-.search-wrap:focus-within{border-color:var(--navy)}
-.search-wrap input{flex:1;border:none;background:none;outline:none;font:inherit;font-size:16px;color:var(--text)}
-.search-wrap input::placeholder{color:var(--light)}
-.search-result{display:flex;align-items:center;gap:14px;padding:15px;border-bottom:1px solid var(--line);cursor:pointer}
-.search-result:active{background:var(--surface-soft)}
-.search-result-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-
-/* ── RÉGLAGES ── */
-.profile-top{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:18px}
-.profile-avatar{width:58px;height:58px;border-radius:18px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
-.stat{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-soft);border-radius:18px;padding:14px;text-align:center}
-.stat strong{font-size:21px;color:var(--navy);display:block}
-.stat span{font-size:11px;color:var(--muted);margin-top:5px;display:block}
-.settings-list{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:22px;overflow:hidden}
-.mode-toggle-row{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid var(--line);cursor:pointer}
-.mode-toggle-row:active{background:var(--surface-soft)}
-.sw{width:44px;height:26px;background:#D1D5DB;border-radius:13px;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0}
-.sw.on{background:var(--green)}
-.sw::after{content:'';position:absolute;top:2px;left:2px;width:22px;height:22px;background:#fff;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,.18);transition:transform .25s cubic-bezier(.34,1.56,.64,1)}
-.sw.on::after{transform:translateX(18px)}
-.chev-right{color:var(--muted);font-size:14px;margin-left:auto}
-
-/* ── TABS (Plans screen) ── */
-.tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:24px -20px 22px;padding:0 20px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
-.tab{font-size:13px;color:var(--muted);font-weight:700;padding-bottom:12px;position:relative;white-space:nowrap;cursor:pointer}
-.tab.active{color:var(--navy)}
-.tab.active:after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--navy);border-radius:2px}
-
-/* ── FORFAIT PLAN CARD ── */
-.plan-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:24px}
-.plan-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-.brand-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,#0C3872,#1E3A5F);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;flex-shrink:0}
-.plan-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--navy)}
-.plan-row:last-of-type{border-bottom:none}
-.plan-name{font-size:17px;font-weight:900;color:var(--navy);margin-bottom:5px}
-.plan-meta{font-size:12px;color:var(--muted)}
-.progress-wrap{height:7px;background:#E8EEF8;border-radius:999px;overflow:hidden;flex:0 0 140px}
-.progress{height:100%;width:65%;background:#386CE8;border-radius:999px}
-.button-soft{width:100%;border:0;background:#F3F6FB;color:var(--navy);font-weight:800;border-radius:15px;padding:15px;margin-top:14px;font-size:14px;cursor:pointer;font-family:inherit}
-.mini-list{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}
-.mini-row{display:flex;align-items:center;gap:14px;padding:15px;border-bottom:1px solid var(--line)}
-.mini-row:last-child{border-bottom:none}
-.mini-logo{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
-.add-plan{display:flex;align-items:center;gap:12px;margin-top:16px;background:#F3F6FB;border:0;width:100%;padding:15px 16px;border-radius:18px;color:var(--navy);font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
-.plus-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
-
-/* ── PARTAGE ── */
-.share-list{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
-.avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900;flex-shrink:0}
-.dots{font-size:22px;color:var(--navy);padding-left:8px;cursor:pointer}
-.emergency-card{background:linear-gradient(145deg,#FFF8EA,#FFFDF7);border:1px solid #F9E0B3;border-radius:22px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);margin-top:26px}
-.emergency-card h3{font-size:15px;color:var(--navy);font-weight:800;margin-bottom:5px}
-.emergency-card p{font-size:12.5px;color:var(--muted);line-height:1.45}
-.emergency-card small{display:block;margin-top:7px;color:var(--navy);font-weight:800}
+/* ── HEADER ── */
+.screen-header {
+  padding: 54px 24px 10px;
+  position: sticky; top: 0; z-index: 10;
+  background: linear-gradient(to bottom, var(--bg) 75%, rgba(245,244,240,0));
+}
+.screen-header h1 {
+  font-size: 30px; font-weight: 700; letter-spacing: -0.6px;
+  color: var(--text-primary);
+}
+.screen-header p { font-size: 14px; color: var(--text-secondary); margin-top: 3px; }
 
 /* ── BOTTOM NAV ── */
-.nav{height:var(--nav-h);padding-bottom:var(--safe-bottom);background:rgba(255,255,255,.93);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);align-items:center;padding-top:10px;flex-shrink:0}
-.nav button{border:0;background:transparent;color:var(--navy);font-size:9.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;font-family:inherit;padding:4px 2px;-webkit-user-select:none;user-select:none}
-.nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
-.nav button.active{color:var(--navy-2)}
-.nav button.active svg{transform:scale(1.08)}
-.nav .add-wrap{width:50px;height:50px;border-radius:15px;background:var(--navy);color:#fff;margin-top:-18px;box-shadow:0 8px 22px rgba(30,58,95,.25);font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
-.nav button.add-btn:active .add-wrap{transform:scale(.92)}
+.bottom-nav {
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: flex-start; padding-top: 10px;
+  flex-shrink: 0; z-index: 100;
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; padding: 6px 4px;
+  -webkit-user-select: none; user-select: none;
+}
+.nav-icon { font-size: 22px; line-height: 1; transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1); }
+.nav-label { font-size: 10px; font-weight: 500; color: var(--text-muted); transition: color 0.15s; letter-spacing: 0.2px; }
+.nav-item.active .nav-icon { transform: scale(1.08); }
+.nav-item.active .nav-label { color: var(--navy); font-weight: 600; }
+
+.nav-item.add-btn .nav-icon-wrap {
+  width: 46px; height: 46px; background: var(--navy); border-radius: 15px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(30,58,95,0.25);
+  margin-top: -10px;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+}
+.nav-item.add-btn:active .nav-icon-wrap { transform: scale(0.92); box-shadow: 0 1px 6px rgba(30,58,95,0.2); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin: 0 16px 14px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── SECTION LABEL ── */
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.9px; text-transform: uppercase;
+  color: var(--text-muted); padding: 22px 24px 10px;
+}
+
+/* ── BADGE ── */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-accent { background: var(--navy-dim); color: var(--navy); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-muted { background: var(--bg-subtle); color: var(--text-muted); }
+.status-actif { background: var(--navy-dim); color: var(--navy); }
+.status-fait { background: var(--green-dim); color: var(--green); }
+.status-reporte { background: var(--amber-dim); color: var(--amber); }
+.status-annule { background: var(--bg-subtle); color: var(--text-muted); }
+.status-archive { background: var(--bg-subtle); color: var(--text-muted); }
+
+/* ── ENGINE BADGE ── */
+.engine-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 12px; color: var(--navy);
+  margin: 14px 20px;
+  box-shadow: var(--shadow-card);
+  font-weight: 500;
+}
+.engine-dot {
+  width: 7px; height: 7px; background: var(--green); border-radius: 50%;
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%,100% { opacity:1; transform: scale(1); }
+  50% { opacity:0.6; transform: scale(0.85); }
+}
+
+/* ── HORIZON COCKPIT ── */
+.cap-horizon {
+  margin: 0 16px 20px;
+  border-radius: 22px;
+  padding: 24px;
+  position: relative; overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.cap-horizon.stable {
+  background: linear-gradient(145deg, #EEF7F3 0%, #F8FDFB 100%);
+  border: 1px solid rgba(63,163,122,0.2);
+}
+.cap-horizon.surveiller {
+  background: linear-gradient(145deg, #FEF9EE 0%, #FFFDF8 100%);
+  border: 1px solid rgba(196,125,43,0.2);
+}
+.cap-horizon.charge {
+  background: linear-gradient(145deg, #FEF0EE 0%, #FFF8F7 100%);
+  border: 1px solid rgba(192,57,43,0.18);
+}
+.cap-horizon-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.9px; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.cap-horizon-text {
+  font-size: 24px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.25;
+  color: var(--text-primary);
+}
+.cap-horizon-sub {
+  font-size: 14px; color: var(--text-secondary); margin-top: 10px; line-height: 1.6;
+}
+
+/* ── TODAY / WEEK / WATCH / SECURED ── */
+.today-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.today-item:last-child { border-bottom: none; }
+.today-icon {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.today-content { flex: 1; }
+.today-title { font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.35; }
+.today-sub { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.today-timing { font-size: 12px; font-weight: 600; color: var(--amber); margin-top: 5px; }
+
+.week-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.week-item:last-child { border-bottom: none; }
+.week-day { font-size: 11px; font-weight: 700; color: var(--text-muted); width: 30px; text-align: center; flex-shrink: 0; letter-spacing: 0.5px; }
+.week-text { font-size: 13px; color: var(--text-primary); flex: 1; }
+.week-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.watch-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.watch-item:last-child { border-bottom: none; }
+.watch-icon { font-size: 20px; }
+.watch-text { flex: 1; font-size: 13px; color: var(--text-primary); }
+.watch-date { font-size: 12px; color: var(--text-muted); }
+
+.secured-item { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.secured-item:last-child { border-bottom: none; }
+.secured-check {
+  width: 20px; height: 20px; background: var(--green-dim);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--green); flex-shrink: 0;
+}
+.secured-text { flex: 1; font-size: 13px; color: var(--text-secondary); }
+.secured-date { font-size: 11px; color: var(--text-muted); }
+
+/* ── ACTION ROW ── */
+.action-row { display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+.action-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 9px;
+  background: var(--bg-subtle); border: 1px solid var(--border);
+  color: var(--text-secondary); font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit; transition: all 0.15s; white-space: nowrap;
+}
+.action-btn:active { transform: scale(0.95); }
+.action-btn.fait { background: var(--green-dim); border-color: rgba(63,163,122,0.2); color: var(--green); }
+.action-btn.reporter { background: var(--amber-dim); border-color: rgba(196,125,43,0.2); color: var(--amber); }
+.action-btn.partager { background: var(--navy-dim); border-color: rgba(30,58,95,0.15); color: var(--navy); }
+.action-btn.annuler { background: var(--red-dim); border-color: rgba(192,57,43,0.15); color: var(--red); }
+
+/* ── OPP / PROMO ── */
+.opp-card {
+  background: #FFFDF5;
+  border: 1px solid rgba(196,125,43,0.18);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  box-shadow: var(--shadow-card);
+}
+.promo-card {
+  background: linear-gradient(145deg, #F0F4FA 0%, #FAFCFF 100%);
+  border: 1px solid rgba(30,58,95,0.14);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px;
+  cursor: pointer; transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: var(--shadow-card);
+}
+.promo-card:active { box-shadow: var(--shadow-card-hover); border-color: rgba(30,58,95,0.22); }
+.promo-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.promo-title { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.promo-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 20px;
+  font-size: 10px; font-weight: 700; background: var(--navy-dim); color: var(--navy);
+  text-transform: uppercase; letter-spacing: 0.4px; margin-top: 2px;
+}
+.promo-timeline { display: flex; flex-direction: column; gap: 7px; margin: 10px 0; }
+.promo-step { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-secondary); }
+.promo-step-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.promo-alerts { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.promo-tap-hint { font-size: 12px; color: var(--navy); margin-top: 10px; text-align: right; font-weight: 500; }
+
+/* ── FORFAIT DETAIL SHEET ── */
+.detail-sheet {
+  position: fixed; inset: 0; background: var(--bg); z-index: 150;
+  transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto; scrollbar-width: none; max-width: 430px; margin: 0 auto;
+}
+.detail-sheet::-webkit-scrollbar { display: none; }
+.detail-sheet.open { transform: translateY(0); }
+.detail-sheet-header {
+  padding: 56px 24px 20px;
+  background: linear-gradient(to bottom, var(--bg) 75%, rgba(245,244,240,0));
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px;
+}
+.detail-back-btn {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; flex-shrink: 0; box-shadow: var(--shadow-card);
+  transition: background 0.15s;
+}
+.detail-back-btn:active { background: var(--bg-subtle); }
+.detail-sheet-title { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+
+.detail-metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 14px; }
+.detail-metric {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+.detail-metric-label { font-size: 10px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; }
+.detail-metric-value { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-top: 5px; letter-spacing: -0.4px; }
+.detail-metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.detail-timeline-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; margin: 0 16px 14px; box-shadow: var(--shadow-card);
+}
+.detail-timeline-item { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.detail-timeline-item:last-child { border-bottom: none; }
+.timeline-line { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.timeline-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.timeline-connector { width: 1px; flex: 1; min-height: 20px; background: var(--border); margin: 4px 0; }
+.detail-timeline-item:last-child .timeline-connector { display: none; }
+.timeline-content { flex: 1; }
+.timeline-date { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.6px; }
+.timeline-label { font-size: 13px; color: var(--text-primary); margin-top: 2px; font-weight: 600; }
+.timeline-detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.5; }
+
+.detail-alerts-card {
+  background: linear-gradient(145deg, #F0F4FA, #FAFCFF);
+  border: 1px solid rgba(30,58,95,0.12);
+  border-radius: var(--radius); padding: 18px; margin: 0 16px 14px;
+  box-shadow: var(--shadow-card);
+}
+.detail-alert-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.detail-alert-item:last-child { border-bottom: none; }
+.alert-icon { font-size: 18px; flex-shrink: 0; }
+.alert-text { flex: 1; font-size: 13px; color: var(--text-primary); }
+.alert-status { font-size: 11px; font-weight: 600; }
+
+/* ── MA VIE ── */
+.domain-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 4px 16px; }
+.domain-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; cursor: pointer; transition: all 0.18s; position: relative; overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+.domain-card:active { box-shadow: var(--shadow-card-hover); transform: scale(0.98); }
+.domain-card-icon { font-size: 26px; margin-bottom: 12px; }
+.domain-card-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.domain-card-count { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.domain-status-bar { height: 3px; border-radius: 3px; margin-top: 14px; background: var(--bg-subtle); position: relative; overflow: hidden; }
+.domain-status-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+.domain-alert {
+  position: absolute; top: 12px; right: 12px; width: 8px; height: 8px;
+  background: var(--amber); border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--bg-card);
+}
+
+.domain-detail {
+  position: absolute; inset: 0; background: var(--bg); z-index: 50;
+  transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto; scrollbar-width: none;
+}
+.domain-detail::-webkit-scrollbar { display: none; }
+.domain-detail.open { transform: translateX(0); }
+.detail-header { padding: 56px 24px 20px; display: flex; align-items: center; gap: 14px; }
+.detail-back {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; flex-shrink: 0; box-shadow: var(--shadow-card);
+}
+.detail-title { font-size: 24px; font-weight: 700; letter-spacing: -0.4px; }
+
+.responsibility-item {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; margin: 0 16px 12px; box-shadow: var(--shadow-card);
+}
+.resp-row { display: flex; align-items: flex-start; gap: 14px; }
+.resp-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.resp-content { flex: 1; }
+.resp-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.resp-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+/* ── RETENIR ── */
+.quick-chips { display: flex; gap: 8px; padding: 4px 16px 14px; overflow-x: auto; scrollbar-width: none; }
+.quick-chips::-webkit-scrollbar { display: none; }
+.chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px;
+  border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: var(--shadow-card);
+  transition: all 0.15s;
+}
+.chip:active { background: var(--navy-dim); border-color: rgba(30,58,95,0.2); color: var(--navy); }
+
+.capture-input-wrap {
+  margin: 8px 16px; background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 18px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.capture-input-wrap:focus-within {
+  border-color: var(--navy); box-shadow: 0 0 0 3px rgba(30,58,95,0.10);
+}
+.capture-input {
+  width: 100%; background: none; border: none; outline: none;
+  color: var(--text-primary); font-size: 16px; font-family: inherit;
+  line-height: 1.6; resize: none; min-height: 80px;
+}
+.capture-input::placeholder { color: var(--text-muted); }
+.capture-toolbar {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+}
+.capture-btn {
+  display: flex; align-items: center; gap: 6px; padding: 7px 13px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--bg-subtle);
+  color: var(--text-secondary); font-size: 13px; font-weight: 500;
+  cursor: pointer; font-family: inherit;
+}
+.capture-submit {
+  margin-left: auto; padding: 9px 20px; border-radius: 10px; border: none;
+  background: var(--navy); color: white; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: inherit; box-shadow: 0 2px 10px rgba(30,58,95,0.22);
+  transition: all 0.2s;
+}
+.capture-submit:active { transform: scale(0.96); }
+
+/* ── AI PANEL ── */
+.ai-panel {
+  margin: 8px 16px; background: linear-gradient(145deg, #F0F4FA, #FAFCFF);
+  border: 1px solid rgba(30,58,95,0.14); border-radius: var(--radius);
+  padding: 18px; display: none; box-shadow: var(--shadow-card);
+}
+.ai-panel.visible { display: block; }
+.ai-panel-header { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+.ai-avatar {
+  width: 30px; height: 30px; background: var(--navy); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.ai-label { font-size: 12px; font-weight: 700; color: var(--navy); }
+.ai-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; }
+.ai-fields { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.ai-field {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; background: var(--bg-card); border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.ai-field-label { font-size: 12px; color: var(--text-secondary); }
+.ai-field-value { font-size: 13px; font-weight: 600; color: var(--text-primary); text-align: right; max-width: 60%; }
+.ai-actions { display: flex; gap: 8px; margin-top: 14px; }
+.ai-action-btn {
+  flex: 1; padding: 11px; border-radius: 10px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-secondary);
+  font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit;
+}
+.ai-action-btn.primary {
+  background: var(--navy); border-color: var(--navy); color: white;
+  box-shadow: 0 2px 10px rgba(30,58,95,0.22);
+}
+.ai-action-btn:active { transform: scale(0.97); }
+
+.loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+.loading-dots span {
+  width: 5px; height: 5px; background: var(--navy); border-radius: 50%;
+  animation: dot-bounce 1.2s ease-in-out infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce { 0%,80%,100%{transform:scale(0.7);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+
+/* ── MÉMOIRE ── */
+.memory-search {
+  margin: 4px 16px 14px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 0 16px;
+  display: flex; align-items: center; gap: 10px; height: 46px;
+  box-shadow: var(--shadow-card);
+}
+.memory-search input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text-primary); font-size: 15px; font-family: inherit;
+}
+.memory-search input::placeholder { color: var(--text-muted); }
+
+.filter-row { display: flex; gap: 8px; padding: 4px 16px 14px; overflow-x: auto; scrollbar-width: none; }
+.filter-row::-webkit-scrollbar { display: none; }
+.filter-pill {
+  padding: 7px 14px; border-radius: 20px; background: var(--bg-card); border: 1px solid var(--border);
+  font-size: 12px; font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: var(--shadow-card);
+  transition: all 0.15s;
+}
+.filter-pill.active { background: var(--navy); border-color: var(--navy); color: white; }
+
+.memory-item {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px 18px; margin: 0 16px 12px;
+  display: flex; align-items: flex-start; gap: 14px;
+  cursor: pointer; box-shadow: var(--shadow-card); transition: box-shadow 0.15s;
+}
+.memory-item:active { box-shadow: var(--shadow-card-hover); }
+.memory-item.fait .memory-title { text-decoration: line-through; color: var(--text-muted); }
+.memory-item.annule { opacity: 0.45; }
+.memory-domain-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.memory-content { flex: 1; }
+.memory-title { font-size: 14px; font-weight: 600; color: var(--text-primary); line-height: 1.35; }
+.memory-context { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.memory-status-row { display: flex; align-items: center; gap: 6px; margin-top: 7px; flex-wrap: wrap; }
+.memory-next { font-size: 12px; font-weight: 600; color: var(--navy); margin-top: 5px; }
+.memory-chevron { color: var(--text-muted); font-size: 12px; margin-top: 3px; }
+
+/* ── SEARCH ── */
+.search-input-wrap {
+  margin: 4px 16px 18px; background: var(--bg-card); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 0 18px; display: flex; align-items: center; gap: 12px;
+  height: 52px; box-shadow: var(--shadow-card); transition: border-color 0.2s;
+}
+.search-input-wrap:focus-within { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(30,58,95,0.10); }
+.search-input-wrap input {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text-primary); font-size: 16px; font-family: inherit;
+}
+.search-input-wrap input::placeholder { color: var(--text-muted); }
+.search-result {
+  display: flex; align-items: flex-start; gap: 14px; padding: 15px 18px;
+  border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s;
+}
+.search-result:active { background: var(--bg-subtle); }
+.search-result-icon {
+  width: 38px; height: 38px; border-radius: 11px;
+  display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;
+}
+
+/* ── RÉGLAGES ── */
+.profile-card {
+  display: flex; align-items: center; gap: 18px; padding: 20px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  margin: 0 16px 24px; box-shadow: var(--shadow-card);
+}
+.profile-avatar {
+  width: 54px; height: 54px;
+  background: linear-gradient(145deg, var(--navy) 0%, #2D5F9E 100%);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 700; color: white; flex-shrink: 0;
+}
+.profile-name { font-size: 17px; font-weight: 700; }
+.profile-plan { font-size: 13px; color: var(--green); margin-top: 2px; font-weight: 600; }
+
+.stats-row { display: flex; gap: 10px; margin: 0 16px 24px; }
+.stat-card {
+  flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 16px; text-align: center; box-shadow: var(--shadow-card);
+}
+.stat-number { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: var(--text-primary); }
+.stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+.settings-section { margin: 0 16px 20px; }
+.settings-label { font-size: 11px; font-weight: 700; letter-spacing: 0.9px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; padding-left: 4px; }
+.settings-group { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-card); }
+.settings-item { display: flex; align-items: center; gap: 14px; padding: 15px 18px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; }
+.settings-item:last-child { border-bottom: none; }
+.settings-item:active { background: var(--bg-subtle); }
+.settings-item-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.settings-item-content { flex: 1; }
+.settings-item-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.settings-item-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+.settings-chevron { color: var(--text-muted); font-size: 14px; }
+
+.toggle {
+  width: 44px; height: 26px; background: var(--bg-subtle); border-radius: 13px;
+  border: 1.5px solid var(--border); position: relative; cursor: pointer; transition: background 0.25s; flex-shrink: 0;
+}
+.toggle.on { background: var(--green); border-color: var(--green); }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+  background: white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.toggle.on::after { transform: translateX(18px); }
+
+/* ── EMPTY / ONBOARDING ── */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 56px 32px; text-align: center; }
+.empty-icon { font-size: 52px; margin-bottom: 18px; }
+.empty-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
+.empty-desc { font-size: 15px; color: var(--text-secondary); line-height: 1.65; margin-bottom: 28px; }
+.empty-cta {
+  padding: 14px 28px; border-radius: 14px; border: none;
+  background: var(--navy); color: white; font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit; box-shadow: 0 4px 18px rgba(30,58,95,0.22);
+}
+.empty-cta:active { transform: scale(0.96); }
+
+.onboarding-card {
+  margin: 0 16px 14px; background: linear-gradient(145deg, #F0F4FA, #FAFCFF);
+  border: 1px solid rgba(30,58,95,0.12); border-radius: 20px; padding: 20px;
+  box-shadow: var(--shadow-card);
+}
+.onboarding-step { display: flex; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.onboarding-step:last-child { border-bottom: none; }
+.onboarding-num {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--navy-dim);
+  border: 1.5px solid rgba(30,58,95,0.2); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--navy); flex-shrink: 0;
+}
+.onboarding-num.done { background: var(--green-dim); border-color: rgba(63,163,122,0.3); color: var(--green); }
+.onboarding-text { font-size: 14px; color: var(--text-primary); }
+.onboarding-text.done { color: var(--text-muted); text-decoration: line-through; }
+
+/* ── CANCELLED NOTICE ── */
+.cancelled-notice {
+  margin: 0 16px 12px; padding: 12px 16px; border-radius: 12px;
+  background: #FEF3F2; border: 1px solid rgba(192,57,43,0.15);
+  font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.cancelled-notice-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
 
 /* ── MODALS ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(17,24,39,.3);z-index:200;display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
-.modal-overlay.open{opacity:1;pointer-events:all}
-.modal-sheet{width:100%;max-width:430px;margin:0 auto;background:#fff;border-radius:24px 24px 0 0;border-top:1px solid var(--line);padding:0 0 calc(var(--safe-bottom) + 20px);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 32px rgba(30,58,95,.10)}
-.modal-overlay.open .modal-sheet{transform:translateY(0)}
-.modal-handle{width:36px;height:4px;background:rgba(30,58,95,.15);border-radius:2px;margin:14px auto 20px}
-.modal-title{font-size:12px;font-weight:800;color:var(--light);text-align:center;text-transform:uppercase;letter-spacing:.7px;margin-bottom:16px}
-.share-option{display:flex;align-items:center;gap:16px;padding:16px 22px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s}
-.share-option:last-child{border-bottom:none}
-.share-option:active{background:var(--surface-soft)}
-.share-option-icon{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.share-option-label{font-size:15px;font-weight:800;color:var(--navy)}
-.share-option-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.share-preview-panel{padding:0 20px 8px}
-.share-recipient-label{font-size:11px;font-weight:800;color:var(--light);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
-.share-message-box{background:var(--surface-soft);border:1.5px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px;min-height:90px}
-.share-message-text{font-size:14px;color:var(--text);line-height:1.65;outline:none;width:100%;background:none;border:none;resize:none;font:inherit}
-.share-actions{display:flex;gap:10px}
-.share-action-btn{flex:1;padding:13px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface-soft);color:var(--muted);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;transition:all .15s}
-.share-action-btn.primary{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 4px 16px rgba(30,58,95,.20)}
-.share-action-btn:active{transform:scale(.97)}
-.share-back-btn{display:flex;align-items:center;gap:6px;padding:0 22px 12px;color:var(--muted);font-size:14px;cursor:pointer;font-weight:600}
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(26,38,54,0.35);
+  z-index: 200; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: #FFFFFF; border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 0 0 calc(var(--safe-bottom) + 20px);
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 -4px 32px rgba(30,58,95,0.12);
+}
+.modal-overlay.open .modal-sheet { transform: translateY(0); }
+.modal-handle {
+  width: 36px; height: 4px; background: rgba(30,58,95,0.15);
+  border-radius: 2px; margin: 14px auto 22px;
+}
+.modal-title {
+  font-size: 12px; font-weight: 700; color: var(--text-muted); text-align: center;
+  text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 16px;
+}
 
-.status-sheet{width:100%;max-width:430px;margin:0 auto;background:#fff;border-radius:24px 24px 0 0;border-top:1px solid var(--line);padding:0 0 calc(var(--safe-bottom) + 20px);transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 -4px 32px rgba(30,58,95,.10)}
-.modal-overlay.open .status-sheet{transform:translateY(0)}
-.status-option{display:flex;align-items:center;gap:14px;padding:15px 22px;cursor:pointer;border-bottom:1px solid var(--line);transition:background .15s}
-.status-option:last-child{border-bottom:none}
-.status-option:active{background:var(--surface-soft)}
-.status-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.share-option {
+  display: flex; align-items: center; gap: 16px; padding: 15px 22px;
+  cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border);
+}
+.share-option:last-child { border-bottom: none; }
+.share-option:active { background: var(--bg-subtle); }
+.share-option-icon {
+  width: 42px; height: 42px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;
+}
+.share-option-label { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.share-option-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
 
-/* ── EMPTY STATE ── */
-.empty-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:56px 24px}
-.empty-icon{font-size:52px;margin-bottom:18px}
-.empty-title{font-size:20px;font-weight:800;color:var(--navy);margin-bottom:10px}
-.empty-desc{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:28px}
-.empty-cta{padding:14px 28px;border-radius:14px;border:0;background:var(--navy);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 6px 20px rgba(30,58,95,.22)}
-.empty-cta:active{transform:scale(.96)}
-.ob-card{background:var(--blue-soft);border:1px solid rgba(30,58,95,.12);border-radius:22px;padding:20px;margin-bottom:24px}
-.ob-step{display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid rgba(30,58,95,.08)}
-.ob-step:last-child{border-bottom:none}
-.ob-num{width:26px;height:26px;border-radius:50%;background:rgba(30,58,95,.1);border:1.5px solid rgba(30,58,95,.18);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--navy);flex-shrink:0}
-.ob-num.done{background:var(--green-soft);border-color:rgba(63,163,122,.3);color:var(--green)}
-.ob-text{font-size:14px;color:var(--navy)}
-.ob-text.done{color:var(--muted);text-decoration:line-through}
+.share-preview-panel { padding: 0 20px 8px; }
+.share-recipient-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.7px; margin-bottom: 10px; }
+.share-message-box {
+  background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 16px; margin-bottom: 14px; min-height: 90px;
+}
+.share-message-text {
+  font-size: 14px; color: var(--text-primary); line-height: 1.65;
+  outline: none; width: 100%; background: none; border: none; resize: none; font-family: inherit;
+}
+.share-actions { display: flex; gap: 10px; }
+.share-action-btn {
+  flex: 1; padding: 13px; border-radius: 12px; border: 1.5px solid var(--border);
+  background: var(--bg-subtle); color: var(--text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.share-action-btn.primary { background: var(--navy); border-color: var(--navy); color: white; box-shadow: 0 2px 10px rgba(30,58,95,0.22); }
+.share-action-btn:active { transform: scale(0.97); }
+.share-back-btn { display: flex; align-items: center; gap: 6px; padding: 0 22px 14px; color: var(--text-secondary); font-size: 14px; cursor: pointer; }
 
-/* ── LOADING DOTS ── */
-.loading-dots{display:inline-flex;gap:4px;align-items:center}
-.loading-dots span{width:5px;height:5px;background:var(--navy);border-radius:50%;animation:dot-b 1.2s ease-in-out infinite}
-.loading-dots span:nth-child(2){animation-delay:.2s}
-.loading-dots span:nth-child(3){animation-delay:.4s}
-@keyframes dot-b{0%,80%,100%{transform:scale(.7);opacity:.3}40%{transform:scale(1);opacity:1}}
+.status-sheet {
+  width: 100%; max-width: 430px; margin: 0 auto;
+  background: #FFFFFF; border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 0 0 calc(var(--safe-bottom) + 20px);
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 -4px 32px rgba(30,58,95,0.12);
+}
+.modal-overlay.open .status-sheet { transform: translateY(0); }
+.status-option {
+  display: flex; align-items: center; gap: 14px; padding: 15px 22px;
+  cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--border);
+}
+.status-option:last-child { border-bottom: none; }
+.status-option:active { background: var(--bg-subtle); }
 
 /* ── TOAST ── */
-.toast{position:fixed;left:50%;bottom:calc(var(--nav-h) + var(--safe-bottom) + 16px);transform:translate(-50%,120px);background:var(--navy);color:#fff;padding:13px 18px;border-radius:16px;font-size:13px;font-weight:800;box-shadow:0 12px 30px rgba(30,58,95,.22);transition:.28s cubic-bezier(.34,1.56,.64,1);z-index:400;white-space:nowrap;max-width:90vw}
-.toast.show{transform:translate(-50%,0)}
+.toast {
+  position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 20px);
+  left: 50%; transform: translateX(-50%) translateY(100px);
+  background: var(--text-primary); color: white;
+  padding: 13px 22px; border-radius: 14px; font-size: 14px; font-weight: 600;
+  z-index: 500; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap; max-width: 90vw; box-shadow: 0 4px 24px rgba(26,38,54,0.22);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
-<div class="app">
 
-  <!-- DEMO BANNER -->
-  <div class="demo-banner" id="demo-banner">
-    <div class="demo-banner-text">🎭 Mode Démo — données fictives</div>
-    <button class="demo-toggle-btn" onclick="toggleMode()">Passer en mode Réel</button>
-  </div>
+<!-- DEMO BANNER -->
+<div class="demo-banner" id="demo-banner">
+  <div class="demo-banner-text">🎭 Mode Démo — données fictives</div>
+  <button class="demo-toggle-btn" onclick="toggleMode()">Passer en mode Réel</button>
+</div>
 
+<div class="app-shell">
   <div class="screens">
 
-    <!-- ═══ MON CAP ═══ -->
-    <section class="screen active" id="screen-cap">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div style="text-align:center">
-        <div class="demo-pill" id="demo-pill" onclick="toggleMode()">
-          <span class="demo-dot" id="demo-dot"></span>
-          <span id="demo-pill-text">Mode Démo actif</span>
-        </div>
+    <!-- MON CAP -->
+    <div class="screen active" id="screen-cap">
+      <div class="screen-header"><h1>Mon Cap</h1><p>Dimanche 14 juin 2026</p></div>
+      <div class="engine-badge"><div class="engine-dot"></div><span id="engine-count">Moteur actif · 0 surveillés</span></div>
+      <div class="cap-horizon" id="horizon-card">
+        <div class="cap-horizon-label" id="horizon-label">Horizon</div>
+        <div class="cap-horizon-text" id="horizon-text">—</div>
+        <div class="cap-horizon-sub" id="horizon-sub">—</div>
       </div>
-      <div class="hello"><h1 id="cap-greeting">Bonjour 👋</h1><p id="cap-sub">Voici votre état de vie aujourd'hui.</p></div>
-      <div class="vigilance"><span class="vigilance-dot"></span><span id="engine-count">Moteur de vigilance actif · 10 éléments surveillés</span></div>
-
-      <!-- HORIZON -->
-      <div class="section-head"><div class="section-title">Cap horizon</div></div>
-      <div class="horizon-card stable" id="horizon-card" onclick="showToast('Horizon calculé à partir de vos responsabilités actives')">
-        <div class="shield">
-          <svg viewBox="0 0 80 92" id="shield-svg">
-            <path d="M40 6 68 17v24c0 19-11 34-28 43C23 75 12 60 12 41V17L40 6Z" fill="none" stroke="#3FA37A" stroke-width="6" id="shield-path"/>
-            <path d="m28 45 8 8 18-20" fill="none" stroke="#3FA37A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" id="shield-check"/>
-          </svg>
-        </div>
-        <div class="horizon-text">
-          <h2 class="stable" id="horizon-title">Stable</h2>
-          <p id="horizon-sub">Aucune action urgente.<br>Vous gardez le contrôle.</p>
-        </div>
-        <div class="chev">›</div>
-      </div>
-
-      <!-- Empty state (mode Réel) -->
-      <div id="cap-empty" style="display:none">
-        <div class="empty-state">
-          <div class="empty-icon">🧠</div>
-          <div class="empty-title">Commencez à retenir</div>
-          <div class="empty-desc">Capturez votre première information. Je l'analyse et vous la restitue exactement quand vous en aurez besoin.</div>
-          <button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Retenir quelque chose →</button>
-        </div>
-      </div>
+      <div id="cap-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🧠</div><div class="empty-title">Commence à retenir</div><div class="empty-desc">Capture ta première information. Je l'analyse et te la restitue exactement quand tu en auras besoin.</div><button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Retenir quelque chose →</button></div></div>
       <div id="cap-onboarding" style="display:none">
-        <div class="section-head"><div class="section-title">Par où commencer</div></div>
-        <div class="ob-card">
-          <div class="ob-step"><div class="ob-num done">✓</div><div class="ob-text done">Créer mon compte</div></div>
-          <div class="ob-step"><div class="ob-num" id="ob-step2">2</div><div class="ob-text" id="ob-text2">Retenir ma première information</div></div>
-          <div class="ob-step"><div class="ob-num">3</div><div class="ob-text">Laisser Life Memory surveiller pour moi</div></div>
-          <div class="ob-step"><div class="ob-num">4</div><div class="ob-text">Recevoir ma première restitution intelligente</div></div>
+        <div class="section-label">Par où commencer</div>
+        <div class="onboarding-card">
+          <div class="onboarding-step"><div class="onboarding-num done">✓</div><div class="onboarding-text done">Créer mon compte</div></div>
+          <div class="onboarding-step"><div class="onboarding-num" id="ob-step2">2</div><div class="onboarding-text" id="ob-text2">Retenir ma première information</div></div>
+          <div class="onboarding-step"><div class="onboarding-num">3</div><div class="onboarding-text">Laisser Life Memory surveiller pour moi</div></div>
+          <div class="onboarding-step"><div class="onboarding-num">4</div><div class="onboarding-text">Recevoir ma première restitution intelligente</div></div>
         </div>
       </div>
-
-      <!-- Contenu démo -->
       <div id="cap-content">
-        <div class="section-head"><div class="section-title">Vos actions à venir</div><div class="section-link" onclick="navigate('memoire',document.querySelector('[data-screen=memoire]'))">Tout voir</div></div>
+        <div class="section-label">Aujourd'hui</div>
         <div class="card">
-          <div class="list-item" id="item-ordo">
-            <div class="iconbox" style="background:var(--red-soft)">💊</div>
-            <div class="item-main">
-              <div class="item-title">Renouvellement ordonnance</div>
-              <div class="item-sub">Médicaments pour 3 jours restants</div>
+          <div class="today-item" id="item-ordo">
+            <div class="today-icon" style="background:#FEF0E6">💊</div>
+            <div class="today-content">
+              <div class="today-title">Renouvellement ordonnance</div>
+              <div class="today-sub">Médecin traitant · Médicaments pour 3 jours restants</div>
+              <div class="today-timing">⚠️ À faire aujourd'hui</div>
               <div class="action-row">
                 <button class="action-btn fait" onclick="markDone('item-ordo','✓ Ordonnance marquée comme faite')">✓ Fait</button>
                 <button class="action-btn reporter" onclick="doReport('item-ordo')">↷ Reporter</button>
-                <button class="action-btn partager" onclick="openShare('Ordonnance à renouveler','Pense à renouveler l\'ordonnance aujourd\'hui — médicaments restants pour 3 jours seulement.')">⬆ Partager</button>
+                <button class="action-btn partager" onclick="openShare('Ordonnance à renouveler','Pense à renouveler ton ordonnance aujourd\'hui — médicaments restants pour 3 jours seulement.')">⬆ Partager</button>
                 <button class="action-btn annuler" onclick="doCancel('item-ordo','Renouvellement ordonnance')">✕ Annuler</button>
               </div>
             </div>
-            <span class="tag danger">Urgent</span>
           </div>
-          <div class="list-item" id="item-ct">
-            <div class="iconbox" style="background:var(--amber-soft)">🚗</div>
-            <div class="item-main">
-              <div class="item-title">Contrôle technique</div>
-              <div class="item-sub">Expire dans 12 jours</div>
+          <div class="today-item" id="item-ct">
+            <div class="today-icon" style="background:#E8F4F4">🚗</div>
+            <div class="today-content">
+              <div class="today-title">Contrôle technique</div>
+              <div class="today-sub">Expire dans 12 jours</div>
+              <div class="today-timing">📅 Prendre RDV cette semaine</div>
               <div class="action-row">
                 <button class="action-btn fait" onclick="markDone('item-ct','✓ Contrôle technique planifié')">✓ Fait</button>
                 <button class="action-btn reporter" onclick="doReport('item-ct')">↷ Reporter</button>
-                <button class="action-btn partager" onclick="openShare('Contrôle technique à planifier','Le contrôle technique expire dans 12 jours — penser à prendre RDV.')">⬆ Partager</button>
+                <button class="action-btn partager" onclick="openShare('Contrôle technique à planifier','N\'oublie pas le contrôle technique — expire dans 12 jours.')">⬆ Partager</button>
                 <button class="action-btn annuler" onclick="doCancel('item-ct','Contrôle technique')">✕ Annuler</button>
               </div>
             </div>
-            <span class="tag watch">12 jours</span>
           </div>
-          <div class="list-item" id="item-impots">
-            <div class="iconbox" style="background:var(--amber-soft)">📄</div>
-            <div class="item-main">
-              <div class="item-title">Déclaration impôts</div>
-              <div class="item-sub">Délai : 20 juin · 6 jours restants</div>
+          <div class="today-item" id="item-impots">
+            <div class="today-icon" style="background:#EBF5E8">📄</div>
+            <div class="today-content">
+              <div class="today-title">Déclaration impôts</div>
+              <div class="today-sub">Service en ligne ouvert</div>
+              <div class="today-timing">📅 Délai : 20 juin · 6 jours restants</div>
               <div class="action-row">
                 <button class="action-btn fait" onclick="markDone('item-impots','✓ Déclaration effectuée')">✓ Fait</button>
                 <button class="action-btn reporter" onclick="doReport('item-impots')">↷ Reporter</button>
                 <button class="action-btn annuler" onclick="doCancel('item-impots','Déclaration impôts')">✕ Annuler</button>
               </div>
             </div>
-            <span class="tag watch">6 jours</span>
-          </div>
-          <div class="list-item" id="item-vaccin">
-            <div class="iconbox" style="background:var(--green-soft)">👶</div>
-            <div class="item-main">
-              <div class="item-title">Vaccin enfant — 18 mois</div>
-              <div class="item-sub">Rappel vaccinal · Jeudi 18 juin</div>
-              <div class="action-row">
-                <button class="action-btn fait" onclick="markDone('item-vaccin','✓ Vaccin planifié')">✓ Fait</button>
-                <button class="action-btn reporter" onclick="doReport('item-vaccin')">↷ Reporter</button>
-              </div>
-            </div>
-            <span class="tag active">Cette semaine</span>
           </div>
         </div>
 
-        <!-- Forfait mobile cliquable -->
-        <div class="section-head"><div class="section-title">Opportunité détectée</div></div>
-        <div class="promo-card" onclick="openForfaitDetail()" id="forfait-card">
-          <div class="promo-card-inner">
-            <div class="promo-header">
-              <div class="promo-brand">📱</div>
-              <div>
-                <div class="promo-title">Forfait mobile 5,99€/mois</div>
-                <div class="promo-sub">Promotion temporaire · Appuyer pour la fiche complète</div>
-              </div>
-              <div class="chev" style="margin-left:auto;font-size:20px">›</div>
-            </div>
+        <div class="section-label">Cette semaine</div>
+        <div class="card">
+          <div class="week-item"><div class="week-day">LUN</div><div class="week-text">Vérifier facture énergie (écart 43€)</div><div class="week-dot" style="background:var(--amber)"></div></div>
+          <div class="week-item"><div class="week-day">MAR</div><div class="week-text">Rappel assurance habitation</div><div class="week-dot" style="background:var(--accent)"></div></div>
+          <div class="week-item"><div class="week-day">JEU</div><div class="week-text">Vaccin enfant — 18 mois</div><div class="week-dot" style="background:var(--green)"></div></div>
+          <div class="week-item"><div class="week-day">VEN</div><div class="week-text">Vérifier abonnements non utilisés</div><div class="week-dot" style="background:var(--text-muted)"></div></div>
+        </div>
+
+        <div class="section-label">Opportunités détectées</div>
+        <div style="padding:0 16px">
+          <div class="promo-card" onclick="openForfaitDetail()" id="forfait-card">
+            <div class="promo-header"><div style="font-size:24px">📱</div><div><div class="promo-title">Forfait mobile 5,99€/mois</div><div class="promo-badge">Promo temporaire · Appuyer pour la fiche</div></div></div>
             <div class="promo-timeline">
               <div class="promo-step"><div class="promo-step-dot" style="background:var(--green)"></div>Aujourd'hui : 5,99€/mois (promo active)</div>
-              <div class="promo-step"><div class="promo-step-dot" style="background:var(--amber)"></div>Dans 11 mois : fin de promotion</div>
-              <div class="promo-step"><div class="promo-step-dot" style="background:var(--red)"></div>Dans 12 mois : passage à 19,99€/mois</div>
-              <div class="promo-step"><div class="promo-step-dot" style="background:var(--navy)"></div>Économie potentielle : ~168€/an</div>
+              <div class="promo-step"><div class="promo-step-dot" style="background:var(--amber)"></div>Dans 11 mois : fin de promotion détectée</div>
+              <div class="promo-step"><div class="promo-step-dot" style="background:var(--red)"></div>Dans 12 mois : passage à 19,99€/mois (+14€)</div>
+              <div class="promo-step"><div class="promo-step-dot" style="background:var(--accent)"></div>Économie si renégocié à temps : ~168€/an</div>
             </div>
-            <div class="promo-alerts">
-              <span class="tag active">🔔 Alerte J-30</span>
-              <span class="tag watch">🔔 Alerte J-15</span>
-              <span class="tag done">Surveillance active</span>
+            <div class="promo-alerts"><span class="badge badge-accent">🔔 Alerte J-30 programmée</span><span class="badge badge-amber">🔔 Alerte J-15 programmée</span></div>
+            <div class="promo-tap-hint">Voir la fiche complète →</div>
+          </div>
+          <div class="opp-card" id="opp-assurance">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="font-size:24px;flex-shrink:0">💡</div>
+              <div style="flex:1">
+                <div style="font-size:14px;font-weight:600;color:var(--text-primary)">Renégocier ton assurance auto</div>
+                <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;line-height:1.4">Contrat de plus de 3 ans. Le marché a baissé. Économie estimée : 180€/an.</div>
+                <div style="margin-top:8px"><span class="badge badge-amber">Potentiel 180€/an</span></div>
+                <div class="action-row">
+                  <button class="action-btn fait" onclick="markDone('opp-assurance','✓ Assurance prise en charge')">✓ Fait</button>
+                  <button class="action-btn reporter" onclick="doReport('opp-assurance')">↷ Reporter</button>
+                  <button class="action-btn partager" onclick="openShare('Assurance auto à renégocier','L\'assurance auto n\'a pas bougé depuis 3 ans. Économie potentielle ~180€/an.')">⬆ Partager</button>
+                  <button class="action-btn annuler" onclick="doCancel('opp-assurance','Renégociation assurance')">✕ Annuler</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Partage intelligent CTA -->
-        <div class="big-action" onclick="navigate('partage',document.querySelector('[data-screen=partage]'))">
-          <div class="iconbox" style="background:var(--blue-soft)">👥</div>
-          <div style="flex:1">
-            <h3>Partager intelligemment</h3>
-            <p>Transmettez les bonnes infos,<br>à la bonne personne, au bon moment.</p>
-          </div>
-          <div class="chev">›</div>
+        <div class="section-label">Je surveille pour toi</div>
+        <div class="card">
+          <div class="watch-item"><div class="watch-icon">🏠</div><div class="watch-text">Garantie chaudière</div><div class="watch-date">Expire mars 2027</div></div>
+          <div class="watch-item"><div class="watch-icon">💰</div><div class="watch-text">Taux d'épargne</div><div class="watch-date">Révision août</div></div>
+          <div class="watch-item"><div class="watch-icon">📱</div><div class="watch-text">Forfait mobile — fin promo</div><div class="watch-date"><span class="badge badge-accent" style="font-size:10px">J-335</span></div></div>
+          <div class="watch-item"><div class="watch-icon">🛡️</div><div class="watch-text">Passeport</div><div class="watch-date">Expire déc. 2026</div></div>
+        </div>
+
+        <div class="section-label">Tu as sécurisé récemment</div>
+        <div class="card">
+          <div class="secured-item"><div class="secured-check">✓</div><div class="secured-text">Mutuelle famille renouvelée</div><div class="secured-date">Il y a 3j</div></div>
+          <div class="secured-item"><div class="secured-check">✓</div><div class="secured-text">Carnet de santé enfant numérisé</div><div class="secured-date">Il y a 12j</div></div>
+          <div class="secured-item"><div class="secured-check">✓</div><div class="secured-text">Loyer indexé correctement</div><div class="secured-date">Il y a 15j</div></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- ═══ MA VIE ═══ -->
-    <section class="screen" id="screen-vie">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="title"><h1>Ma Vie</h1><p>7 domaines · 23 responsabilités actives</p></div>
-
+    <!-- MA VIE -->
+    <div class="screen" id="screen-vie">
+      <div class="screen-header"><h1>Ma Vie</h1><p>7 domaines · <span id="vie-count">23</span> responsabilités</p></div>
       <div class="domain-detail" id="domain-detail">
-        <div class="domain-detail-header">
-          <div class="domain-back" onclick="closeDomain()">←</div>
-          <div id="detail-icon" style="font-size:26px;margin-right:4px">🏠</div>
-          <div class="domain-detail-title" id="detail-title">Logement</div>
-        </div>
+        <div class="detail-header"><div class="detail-back" onclick="closeDomain()">←</div><div><div id="detail-icon" style="font-size:24px;margin-bottom:4px">🏠</div><div class="detail-title" id="detail-title">Logement</div></div></div>
         <div id="detail-content"></div>
       </div>
-
-      <div id="vie-empty" style="display:none">
-        <div class="empty-state"><div class="empty-icon">🧭</div><div class="empty-title">Aucune responsabilité encore</div><div class="empty-desc">Capturez des informations et je les classe automatiquement par domaine.</div><button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Commencer →</button></div>
-      </div>
+      <div style="height:8px"></div>
+      <div id="vie-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🧭</div><div class="empty-title">Aucune responsabilité encore</div><div class="empty-desc">Capture des informations et je les classe automatiquement par domaine.</div><button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Commencer →</button></div></div>
       <div class="domain-grid" id="domain-grid"></div>
-    </section>
+    </div>
 
-    <!-- ═══ RETENIR ═══ -->
-    <section class="screen" id="screen-retenir">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="title"><h1>Retenir</h1><p>Écrivez, dictez ou prenez une photo.<br>Life Memory s'occupe du reste.</p></div>
+    <!-- RETENIR -->
+    <div class="screen" id="screen-retenir">
+      <div class="screen-header"><h1>Retenir</h1><p>Capture en moins de 5 secondes</p></div>
       <div class="quick-chips">
         <div class="chip" onclick="quickCapture('💊 Médicament')">💊 Médicament</div>
         <div class="chip" onclick="quickCapture('📅 Échéance')">📅 Échéance</div>
@@ -542,37 +886,34 @@ body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro T
         <div class="chip" onclick="quickCapture('🛠️ Réparation')">🛠️ Réparation</div>
         <div class="chip" onclick="quickCapture('👶 Enfant')">👶 Enfant</div>
       </div>
-      <div class="capture-panel">
-        <textarea class="capture-area" id="capture-text" placeholder='Ex : "forfait mobile à 5,99€ pendant 12 mois puis 19,99€"' oninput="onCaptureInput()"></textarea>
-        <div class="capture-actions">
-          <button class="small-btn">🎤 Voix</button>
-          <button class="small-btn">📷 Photo</button>
-          <button class="primary-btn" onclick="submitCapture()">Analyser</button>
-        </div>
-        <div class="ai-card" id="ai-panel">
-          <div class="ai-title">Life Memory comprend</div>
-          <p id="ai-text"><span class="loading-dots"><span></span><span></span><span></span></span></p>
-          <div class="ai-grid" id="ai-fields"></div>
-          <div class="ai-actions" id="ai-actions"></div>
+      <div class="capture-input-wrap">
+        <textarea class="capture-input" id="capture-text" placeholder='Ex : "forfait mobile à 5,99€ pendant 12 mois puis 19,99€"' rows="4" oninput="onCaptureInput()"></textarea>
+        <div class="capture-toolbar">
+          <button class="capture-btn">🎤 Voix</button>
+          <button class="capture-btn">📷 Photo</button>
+          <button class="capture-submit" onclick="submitCapture()">Analyser →</button>
         </div>
       </div>
-      <div class="section-head" style="margin-top:24px"><div class="section-title">Récemment retenus</div></div>
-      <div class="card">
-        <div class="list-item"><div class="iconbox" style="background:var(--blue-soft)">📱</div><div class="item-main"><div class="item-title">Forfait mobile 5,99€ → 19,99€</div><div class="item-sub">Finances · Alerte J-30 et J-15 programmées</div></div><span class="tag active">Actif</span></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--green-soft)">💉</div><div class="item-main"><div class="item-title">Vaccin grippe annuel</div><div class="item-sub">Santé · Rappel en octobre</div></div><span class="tag done">Actif</span></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--amber-soft)">🚗</div><div class="item-main"><div class="item-title">Assurance auto — bonus</div><div class="item-sub">Véhicule · Renouvellement mars 2027</div></div><span class="tag active">Actif</span></div>
+      <div class="ai-panel" id="ai-panel">
+        <div class="ai-panel-header"><div class="ai-avatar">🧠</div><div class="ai-label">Life Memory comprend</div></div>
+        <div class="ai-text" id="ai-text"><div class="loading-dots"><span></span><span></span><span></span></div></div>
+        <div class="ai-fields" id="ai-fields"></div>
+        <div class="ai-actions" id="ai-actions"></div>
       </div>
-    </section>
+      <div class="section-label" style="margin-top:8px">Récemment retenus</div>
+      <div id="recent-captures">
+        <div class="memory-item"><div class="memory-domain-dot" style="background:#7C7FF5"></div><div class="memory-content"><div class="memory-title">Forfait mobile 5,99€ → 19,99€</div><div class="memory-context">Finances · Promo 12 mois</div><div class="memory-next">→ Alerte J-30 et J-15 programmées</div></div></div>
+        <div class="memory-item"><div class="memory-domain-dot" style="background:#34D399"></div><div class="memory-content"><div class="memory-title">Vaccin grippe annuel</div><div class="memory-context">Santé · Toute la famille</div><div class="memory-next">→ Je te rappelle en octobre</div></div></div>
+        <div class="memory-item"><div class="memory-domain-dot" style="background:#F59E0B"></div><div class="memory-content"><div class="memory-title">Assurance auto — bonus en cours</div><div class="memory-context">Véhicule · Renouvellement mars 2027</div><div class="memory-next">→ Surveillance active</div></div></div>
+      </div>
+    </div>
 
-    <!-- ═══ MÉMOIRE ═══ -->
-    <section class="screen" id="screen-memoire">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="title"><h1>Mémoire</h1><p>Tout ce que je garde pour vous.</p></div>
-      <div id="memoire-empty" style="display:none">
-        <div class="empty-state"><div class="empty-icon">🫙</div><div class="empty-title">Ma mémoire est vide</div><div class="empty-desc">Chaque information capturée apparaîtra ici, classée et restituée au bon moment.</div><button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Première capture →</button></div>
-      </div>
+    <!-- MEMOIRE -->
+    <div class="screen" id="screen-memoire">
+      <div class="screen-header"><h1>Mémoire</h1><p>Tout ce que je garde pour toi</p></div>
+      <div id="memoire-empty" style="display:none"><div class="empty-state"><div class="empty-icon">🫙</div><div class="empty-title">Ma mémoire est vide</div><div class="empty-desc">Chaque information capturée apparaîtra ici, classée et restituée au bon moment.</div><button class="empty-cta" onclick="navigate('retenir',document.querySelector('[data-screen=retenir]'))">Première capture →</button></div></div>
       <div id="memoire-content">
-        <div class="mem-search"><span style="color:var(--light);font-size:18px">🔍</span><input type="text" placeholder="Chercher dans ma mémoire…" oninput="filterMemory(this.value)"></div>
+        <div class="memory-search"><span style="color:var(--text-muted)">🔍</span><input type="text" placeholder="Chercher dans ma mémoire…" oninput="filterMemory(this.value)"></div>
         <div class="filter-row">
           <div class="filter-pill active" onclick="setFilter(this,'all')">Tout</div>
           <div class="filter-pill" onclick="setFilter(this,'urgent')">🔴 Urgent</div>
@@ -585,106 +926,77 @@ body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro T
         </div>
         <div id="memory-list"></div>
       </div>
-    </section>
+    </div>
 
-    <!-- ═══ RECHERCHE ═══ -->
-    <section class="screen" id="screen-recherche">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="title"><h1>Recherche</h1><p>Retrouvez n'importe quelle information.</p></div>
-      <div class="search-wrap"><span style="color:var(--light);font-size:18px">🔍</span><input type="text" id="search-main" placeholder="Garantie, date, montant, nom…" oninput="doSearch(this.value)"></div>
+    <!-- RECHERCHE -->
+    <div class="screen" id="screen-recherche">
+      <div class="screen-header"><h1>Recherche</h1><p>Retrouve n'importe quelle information</p></div>
+      <div class="search-input-wrap"><span style="color:var(--text-muted);font-size:18px">🔍</span><input type="text" id="search-main" placeholder="Garantie, date, montant, nom…" oninput="doSearch(this.value)"></div>
       <div id="search-suggestions">
-        <div class="section-head"><div class="section-title">Recherches fréquentes</div></div>
-        <div class="quick-chips" style="margin-bottom:20px">
+        <div class="section-label">Recherches fréquentes</div>
+        <div style="padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">
           <div class="chip" onclick="doSearchQuery('forfait')">forfait</div>
           <div class="chip" onclick="doSearchQuery('garantie')">garantie</div>
           <div class="chip" onclick="doSearchQuery('assurance')">assurance</div>
+          <div class="chip" onclick="doSearchQuery('ordonnance')">ordonnance</div>
           <div class="chip" onclick="doSearchQuery('vaccin')">vaccin</div>
-          <div class="chip" onclick="doSearchQuery('contrat')">contrat</div>
         </div>
-        <div class="section-head"><div class="section-title">Résultats récents</div></div>
-        <div class="card">
-          <div class="search-result"><div class="search-result-icon" style="background:var(--blue-soft)">📱</div><div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--navy)">Forfait mobile 5,99€ → 19,99€</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Finances · Promo 12 mois · Alerte J-30/J-15</div></div><span style="color:var(--light)">›</span></div>
-          <div class="search-result"><div class="search-result-icon" style="background:var(--green-soft)">⚡</div><div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--navy)">Contrat énergie — écart 43€</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Finances · À vérifier lundi</div></div><span style="color:var(--light)">›</span></div>
-          <div class="search-result" style="border-bottom:none"><div class="search-result-icon" style="background:var(--surface-soft)">🔧</div><div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--navy)">Plombier — contact professionnel</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Logement · Ajouté il y a 6 mois</div></div><span style="color:var(--light)">›</span></div>
-        </div>
+        <div class="section-label">Résultats récents</div>
+        <div class="search-result"><div class="search-result-icon" style="background:#EDF0FA">📱</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text-primary)">Forfait mobile 5,99€ → 19,99€</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Finances · Promo 12 mois · Alerte J-30/J-15</div></div><span style="color:var(--text-muted)">›</span></div>
+        <div class="search-result"><div class="search-result-icon" style="background:#E8F5E8">⚡</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text-primary)">Contrat énergie — écart 43€</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Finances · À vérifier lundi</div></div><span style="color:var(--text-muted)">›</span></div>
+        <div class="search-result"><div class="search-result-icon" style="background:#E8F4F4">🔧</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text-primary)">Plombier — contact professionnel</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">Logement · Ajouté il y a 6 mois</div></div><span style="color:var(--text-muted)">›</span></div>
       </div>
       <div id="search-results" style="display:none"></div>
-    </section>
+    </div>
 
-    <!-- ═══ PARTAGE ═══ -->
-    <section class="screen" id="screen-partage">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="top-row"><div class="title"><h1>Partage<br>intelligent</h1><p>Transmettez les bonnes infos,<br>à la bonne personne, au bon moment.</p></div><div class="round-info">i</div></div>
-      <div class="section-head"><div class="section-title">Partages en cours</div></div>
-      <div class="share-list">
-        <div class="list-item"><div class="avatar" style="background:var(--green)">M</div><div class="item-main"><div class="item-title">Marie (conjointe)</div><div class="item-sub">Accès complet · Depuis le 10/04/2025</div></div><span class="tag done">Actif</span></div>
-        <div class="list-item"><div class="avatar" style="background:#2B91C8">N</div><div class="item-main"><div class="item-title">Notaire Dupont</div><div class="item-sub">Accès successoral · Demandé le 08/05/2025</div></div><span class="tag watch">En attente</span></div>
-        <div class="list-item"><div class="avatar" style="background:#9B7BC6">A</div><div class="item-main"><div class="item-title">Antoine (fils)</div><div class="item-sub">Accès partiel · Depuis le 01/05/2025</div></div><span class="tag done">Actif</span></div>
-      </div>
-      <div class="big-action" onclick="openShare('Nouveau partage','Partagez une information importante avec une personne de confiance.')">
-        <div class="iconbox" style="background:var(--blue-soft)">👥</div>
-        <div style="flex:1"><h3>Nouveau partage</h3></div>
-        <div class="chev">›</div>
-      </div>
-      <div class="section-head"><div class="section-title">Accès d'urgence</div></div>
-      <div class="emergency-card">
-        <div class="iconbox" style="background:#fff3d6;color:var(--amber)">🛡️</div>
-        <div style="flex:1"><h3>Accès d'urgence</h3><p>Vos proches pourront accéder à vos infos critiques si nécessaire.</p><small>Configurer →</small></div>
-        <div class="chev">›</div>
-      </div>
-    </section>
-
-    <!-- ═══ RÉGLAGES ═══ -->
-    <section class="screen" id="screen-reglages">
-      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
-      <div class="title"><h1>Profil</h1><p>Vos préférences et votre sécurité.</p></div>
-      <div class="profile-top">
-        <div class="profile-avatar">E</div>
-        <div><div class="plan-name">Edrick</div><div class="plan-meta">Life Memory Pro</div></div>
-      </div>
-      <div class="stats">
-        <div class="stat"><strong id="stat-retenu">10</strong><span>Retenus</span></div>
-        <div class="stat"><strong id="stat-surveille">8</strong><span>Surveillés</span></div>
-        <div class="stat"><strong id="stat-temps">3h</strong><span>Charge libérée</span></div>
-      </div>
-      <div class="settings-list">
-        <div class="mode-toggle-row" onclick="toggleMode()">
-          <div class="iconbox" style="background:var(--amber-soft);color:var(--amber)">🎭</div>
-          <div class="item-main"><div class="item-title" id="mode-setting-title">Mode Démo actif</div><div class="item-sub" id="mode-setting-sub">Données fictives · Appuyer pour basculer</div></div>
-          <div class="sw on" id="mode-toggle"></div>
+    <!-- REGLAGES -->
+    <div class="screen" id="screen-reglages">
+      <div class="screen-header"><h1>Réglages</h1><p>Ton copilote, tes règles</p></div>
+      <div class="section-label">Mode d'affichage</div>
+      <div class="settings-section">
+        <div class="settings-group">
+          <div class="settings-item" onclick="toggleMode()">
+            <div class="settings-item-icon" style="background:#FBF5E8">🎭</div>
+            <div class="settings-item-content"><div class="settings-item-title" id="mode-setting-title">Mode Démo actif</div><div class="settings-item-sub" id="mode-setting-sub">Données fictives · Appuyer pour basculer en mode Réel</div></div>
+            <div class="toggle on" id="mode-toggle"></div>
+          </div>
         </div>
-        <div class="list-item"><div class="iconbox" style="background:var(--blue-soft)">🧠</div><div class="item-main"><div class="item-title">Moteur de timing</div><div class="item-sub">Restitution automatique au bon moment</div></div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--green-soft)">💡</div><div class="item-main"><div class="item-title">Opportunités proactives</div><div class="item-sub">Détection promos, économies, optimisations</div></div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--amber-soft)">🔔</div><div class="item-main"><div class="item-title">Rappels J-30 / J-15</div><div class="item-sub">Promotions temporaires et échéances</div></div><div class="sw on" onclick="this.classList.toggle('on')"></div></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--surface-soft)">🔐</div><div class="item-main"><div class="item-title">Sécurité & confidentialité</div><div class="item-sub">Vos données, vos règles</div></div><div class="chev-right">›</div></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--surface-soft)">☁️</div><div class="item-main"><div class="item-title">Sauvegarde</div><div class="item-sub">Dernière sync il y a 2 min</div></div><div class="chev-right">›</div></div>
-        <div class="list-item"><div class="iconbox" style="background:var(--red-soft)">🚪</div><div class="item-main"><div class="item-title" style="color:var(--red)">Se déconnecter</div></div></div>
       </div>
+      <div class="profile-card"><div class="profile-avatar">E</div><div><div class="profile-name">Edrick</div><div class="profile-plan">Life Memory Pro</div></div></div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-number" id="stat-retenu">10</div><div class="stat-label">Retenus</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-surveille">8</div><div class="stat-label">Surveillés</div></div>
+        <div class="stat-card"><div class="stat-number" id="stat-temps">3h</div><div class="stat-label">Charge libérée</div></div>
+      </div>
+      <div class="section-label">Intelligence</div>
+      <div class="settings-section"><div class="settings-group">
+        <div class="settings-item"><div class="settings-item-icon" style="background:#EDF0FA">🧠</div><div class="settings-item-content"><div class="settings-item-title">Moteur de timing</div><div class="settings-item-sub">Restitution automatique au bon moment</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#FBF5E8">💡</div><div class="settings-item-content"><div class="settings-item-title">Opportunités proactives</div><div class="settings-item-sub">Détection promos, économies, optimisations</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#EEEAF8">📱</div><div class="settings-item-content"><div class="settings-item-title">Détection promotions temporaires</div><div class="settings-item-sub">Forfaits, abonnements, offres limitées</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div></div>
+      <div class="section-label">Notifications</div>
+      <div class="settings-section"><div class="settings-group">
+        <div class="settings-item"><div class="settings-item-icon" style="background:#F5EDF5">🔔</div><div class="settings-item-content"><div class="settings-item-title">Revue quotidienne</div><div class="settings-item-sub">8h00 · Tous les jours</div></div><span class="settings-chevron">›</span></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#E8F4F4">⚡</div><div class="settings-item-content"><div class="settings-item-title">Alertes urgentes</div><div class="settings-item-sub">Push immédiat</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#FBF5E6">📅</div><div class="settings-item-content"><div class="settings-item-title">Rappels J-30 / J-15</div><div class="settings-item-sub">Promotions temporaires et échéances</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+      </div></div>
+      <div class="section-label">Compte</div>
+      <div class="settings-section"><div class="settings-group">
+        <div class="settings-item"><div class="settings-item-icon" style="background:#F0F0F0">🔐</div><div class="settings-item-content"><div class="settings-item-title">Sécurité & confidentialité</div></div><span class="settings-chevron">›</span></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#F0F0F0">☁️</div><div class="settings-item-content"><div class="settings-item-title">Sauvegarde</div><div class="settings-item-sub">Dernière sync il y a 2 min</div></div><span class="settings-chevron">›</span></div>
+        <div class="settings-item"><div class="settings-item-icon" style="background:#FAEDEB">🚪</div><div class="settings-item-content"><div class="settings-item-title" style="color:var(--red)">Se déconnecter</div></div></div>
+      </div></div>
       <div style="height:20px"></div>
-    </section>
+    </div>
 
-  </div><!-- /screens -->
-
-  <!-- ═══ NAV ═══ -->
-  <nav class="nav">
-    <button class="active" data-screen="cap" onclick="navigate('cap',this)">
-      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Mon Cap
-    </button>
-    <button data-screen="vie" onclick="navigate('vie',this)">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 3"/></svg>Ma Vie
-    </button>
-    <button class="add-btn" data-screen="retenir" onclick="navigate('retenir',this)">
-      <div class="add-wrap"><span style="color:#fff;font-size:28px;line-height:1;margin-top:-2px">+</span></div>Retenir
-    </button>
-    <button data-screen="memoire" onclick="navigate('memoire',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>Mémoire
-    </button>
-    <button data-screen="partage" onclick="navigate('partage',this)">
-      <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0M3 21a7 7 0 0 1 14 0M19 8v6M22 11h-6"/></svg>Partage
-    </button>
-    <button data-screen="reglages" onclick="navigate('reglages',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Profil
-    </button>
+  </div>
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-screen="cap" onclick="navigate('cap',this)"><span class="nav-icon">🏠</span><span class="nav-label">Mon Cap</span></div>
+    <div class="nav-item" data-screen="vie" onclick="navigate('vie',this)"><span class="nav-icon">🧭</span><span class="nav-label">Ma Vie</span></div>
+    <div class="nav-item add-btn" data-screen="retenir" onclick="navigate('retenir',this)"><div class="nav-icon-wrap"><span style="color:white;font-size:22px">+</span></div><span class="nav-label" style="margin-top:2px">Retenir</span></div>
+    <div class="nav-item" data-screen="memoire" onclick="navigate('memoire',this)"><span class="nav-icon">🧠</span><span class="nav-label">Mémoire</span></div>
+    <div class="nav-item" data-screen="recherche" onclick="navigate('recherche',this)"><span class="nav-icon">🔍</span><span class="nav-label">Recherche</span></div>
+    <div class="nav-item" data-screen="reglages" onclick="navigate('reglages',this)"><span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span></div>
   </nav>
 </div>
 
@@ -692,46 +1004,43 @@ body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro T
 <div class="detail-sheet" id="forfait-detail">
   <div class="detail-sheet-header">
     <div class="detail-back-btn" onclick="closeForfaitDetail()">←</div>
-    <div>
-      <div style="font-size:11px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Fiche complète</div>
-      <div class="detail-sheet-title">📱 Forfait mobile</div>
-    </div>
+    <div><div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">Fiche complète</div><div class="detail-sheet-title">📱 Forfait mobile</div></div>
   </div>
   <div style="padding:0 0 100px">
     <div class="detail-metric-row">
       <div class="detail-metric"><div class="detail-metric-label">Prix actuel</div><div class="detail-metric-value" style="color:var(--green)">5,99€</div><div class="detail-metric-sub">par mois · promo</div></div>
       <div class="detail-metric"><div class="detail-metric-label">Prix futur</div><div class="detail-metric-value" style="color:var(--red)">19,99€</div><div class="detail-metric-sub">par mois · normal</div></div>
       <div class="detail-metric"><div class="detail-metric-label">Fin de promo</div><div class="detail-metric-value" style="color:var(--amber)">12 mois</div><div class="detail-metric-sub">juin 2027</div></div>
-      <div class="detail-metric"><div class="detail-metric-label">Économie potentielle</div><div class="detail-metric-value" style="color:var(--navy)">~168€</div><div class="detail-metric-sub">si renégocié à temps</div></div>
+      <div class="detail-metric"><div class="detail-metric-label">Économie potentielle</div><div class="detail-metric-value" style="color:var(--accent)">~168€</div><div class="detail-metric-sub">si renégocié à temps</div></div>
     </div>
-    <div class="section-head" style="padding:0 20px"><div class="section-title">Chronologie</div></div>
-    <div class="timeline-card">
-      <div class="tl-item"><div class="tl-line"><div class="tl-dot" style="background:var(--green)"></div><div class="tl-connector"></div></div><div class="tl-content"><div class="tl-date">Aujourd'hui · Juin 2026</div><div class="tl-label">Promo active — 5,99€/mois</div><div class="tl-detail">Offre de bienvenue en cours. Aucune action nécessaire.</div></div></div>
-      <div class="tl-item"><div class="tl-line"><div class="tl-dot" style="background:var(--navy)"></div><div class="tl-connector"></div></div><div class="tl-content"><div class="tl-date">Mai 2027 · J-30</div><div class="tl-label">🔔 Première alerte</div><div class="tl-detail">Life Memory vous rappelle de comparer les offres et d'appeler votre opérateur.</div></div></div>
-      <div class="tl-item"><div class="tl-line"><div class="tl-dot" style="background:var(--amber)"></div><div class="tl-connector"></div></div><div class="tl-content"><div class="tl-date">Juin 2027 · J-15</div><div class="tl-label">🔔 Deuxième alerte</div><div class="tl-detail">Rappel urgent : renégocier ou changer d'offre avant la hausse automatique.</div></div></div>
-      <div class="tl-item"><div class="tl-line"><div class="tl-dot" style="background:var(--red)"></div></div><div class="tl-content"><div class="tl-date">Fin juin 2027</div><div class="tl-label">Passage à 19,99€/mois</div><div class="tl-detail">Hausse automatique de +14€/mois si aucune action prise.</div></div></div>
+    <div class="section-label">Chronologie</div>
+    <div class="detail-timeline-card">
+      <div class="detail-timeline-item"><div class="timeline-line"><div class="timeline-dot" style="background:var(--green)"></div><div class="timeline-connector"></div></div><div class="timeline-content"><div class="timeline-date">Aujourd'hui · Juin 2026</div><div class="timeline-label">Promo active — 5,99€/mois</div><div class="timeline-detail">Offre de bienvenue en cours. Aucune action nécessaire.</div></div></div>
+      <div class="detail-timeline-item"><div class="timeline-line"><div class="timeline-dot" style="background:var(--accent)"></div><div class="timeline-connector"></div></div><div class="timeline-content"><div class="timeline-date">Mai 2027 · J-30</div><div class="timeline-label">🔔 Première alerte</div><div class="timeline-detail">Life Memory te rappelle de comparer les offres et d'appeler ton opérateur.</div></div></div>
+      <div class="detail-timeline-item"><div class="timeline-line"><div class="timeline-dot" style="background:var(--amber)"></div><div class="timeline-connector"></div></div><div class="timeline-content"><div class="timeline-date">Juin 2027 · J-15</div><div class="timeline-label">🔔 Deuxième alerte</div><div class="timeline-detail">Rappel urgent : renégocier ou changer d'offre avant la hausse automatique.</div></div></div>
+      <div class="detail-timeline-item"><div class="timeline-line"><div class="timeline-dot" style="background:var(--red)"></div></div><div class="timeline-content"><div class="timeline-date">Fin juin 2027</div><div class="timeline-label">Passage à 19,99€/mois</div><div class="timeline-detail">Hausse automatique de +14€/mois si aucune action prise.</div></div></div>
     </div>
-    <div class="section-head" style="padding:0 20px"><div class="section-title">Rappels programmés</div></div>
-    <div class="alerts-card">
-      <div class="alert-item"><span style="font-size:18px">🔔</span><div class="alert-text">Alerte J-30 avant fin de promo</div><div class="alert-status" id="alert-j30" style="color:var(--green)">Actif</div></div>
-      <div class="alert-item"><span style="font-size:18px">🔔</span><div class="alert-text">Alerte J-15 avant fin de promo</div><div class="alert-status" id="alert-j15" style="color:var(--green)">Actif</div></div>
-      <div class="alert-item"><span style="font-size:18px">📊</span><div class="alert-text">Surveillance mensuelle du marché</div><div class="alert-status" id="alert-monthly" style="color:var(--navy)">En veille</div></div>
+    <div class="section-label">Rappels programmés</div>
+    <div class="detail-alerts-card">
+      <div class="detail-alert-item"><div class="alert-icon">🔔</div><div class="alert-text">Alerte J-30 avant fin de promo</div><div class="alert-status" id="alert-j30" style="color:var(--green)">Actif</div></div>
+      <div class="detail-alert-item"><div class="alert-icon">🔔</div><div class="alert-text">Alerte J-15 avant fin de promo</div><div class="alert-status" id="alert-j15" style="color:var(--green)">Actif</div></div>
+      <div class="detail-alert-item"><div class="alert-icon">📊</div><div class="alert-text">Surveillance mensuelle du marché</div><div class="alert-status" id="alert-monthly" style="color:var(--accent)">En veille</div></div>
     </div>
-    <div class="section-head" style="padding:0 20px"><div class="section-title">Statut</div></div>
-    <div class="status-card">
-      <div><div style="font-size:12px;color:var(--muted);margin-bottom:4px">Statut actuel</div><div id="forfait-status-label"><span class="tag done">🔵 Actif · Surveillance en cours</span></div></div>
-      <button class="small-btn" style="width:auto;padding:8px 14px" onclick="openStatusForForfait()">Modifier →</button>
+    <div class="section-label">Statut</div>
+    <div class="detail-status-card" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin:0 16px 12px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-card)">
+      <div><div style="font-size:13px;color:var(--text-secondary)">Statut actuel</div><div style="font-size:15px;font-weight:600;margin-top:4px" id="forfait-status-label"><span class="badge status-actif">🔵 Actif · Surveillance en cours</span></div></div>
+      <button class="action-btn" onclick="openStatusForForfait()" style="flex-shrink:0">Modifier →</button>
     </div>
-    <div class="cancelled-notice" id="forfait-cancel-notice" style="display:none"><div class="cancelled-notice-icon">🔕</div><div>Les rappels futurs liés à ce forfait ont été désactivés. Vous pouvez les réactiver en changeant le statut.</div></div>
-    <div class="section-head" style="padding:0 20px"><div class="section-title">Actions</div></div>
-    <div style="padding:0 20px 16px">
+    <div class="cancelled-notice" id="forfait-cancel-notice" style="display:none"><div class="cancelled-notice-icon">🔕</div><div>Les rappels futurs liés à ce forfait ont été désactivés. Tu peux les réactiver en changeant le statut.</div></div>
+    <div class="section-label">Actions</div>
+    <div style="padding:0 16px 16px">
       <div class="action-row" style="gap:8px">
-        <button class="action-btn fait" style="flex:1;justify-content:center;padding:12px" onclick="forfaitAction('fait')">✓ Fait</button>
-        <button class="action-btn reporter" style="flex:1;justify-content:center;padding:12px" onclick="forfaitAction('reporter')">↷ Reporter</button>
-        <button class="action-btn annuler" style="flex:1;justify-content:center;padding:12px" onclick="forfaitAction('annuler')">✕ Annuler</button>
+        <button class="action-btn fait" style="flex:1;justify-content:center;padding:10px" onclick="forfaitAction('fait')">✓ Fait</button>
+        <button class="action-btn reporter" style="flex:1;justify-content:center;padding:10px" onclick="forfaitAction('reporter')">↷ Reporter</button>
+        <button class="action-btn annuler" style="flex:1;justify-content:center;padding:10px" onclick="forfaitAction('annuler')">✕ Annuler</button>
       </div>
       <div class="action-row" style="margin-top:8px">
-        <button class="action-btn partager" style="flex:1;justify-content:center;padding:12px" onclick="openShare('Forfait mobile — fin de promo dans 12 mois','Mon forfait passe de 5,99€ à 19,99€ dans 12 mois. Renégocier avant = ~168€ économisés.')">⬆ Partager cette fiche</button>
+        <button class="action-btn partager" style="flex:1;justify-content:center;padding:10px" onclick="openShare('Forfait mobile — fin de promo dans 12 mois','Mon forfait passe de 5,99€ à 19,99€ dans 12 mois. Renégocier avant = ~168€ économisés.')">⬆ Partager cette fiche</button>
       </div>
     </div>
   </div>
@@ -743,10 +1052,10 @@ body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro T
     <div class="modal-handle"></div>
     <div id="share-step1">
       <div class="modal-title">Partager avec</div>
-      <div class="share-option" onclick="buildShareMessage('Partenaire de vie')"><div class="share-option-icon" style="background:var(--green-soft)">👫</div><div><div class="share-option-label">Mon / ma partenaire</div><div class="share-option-sub">Registre proche, informel</div></div></div>
-      <div class="share-option" onclick="buildShareMessage('Mon enfant')"><div class="share-option-icon" style="background:var(--amber-soft)">👶</div><div><div class="share-option-label">Mon enfant</div><div class="share-option-sub">Formulation claire et simple</div></div></div>
-      <div class="share-option" onclick="buildShareMessage('Un collègue')"><div class="share-option-icon" style="background:var(--blue-soft)">💼</div><div><div class="share-option-label">Un collègue</div><div class="share-option-sub">Ton professionnel, factuel</div></div></div>
-      <div class="share-option" onclick="buildShareMessage('_copy')"><div class="share-option-icon" style="background:var(--surface-soft)">📋</div><div><div class="share-option-label">Générer le message</div><div class="share-option-sub">Message prêt à l'emploi</div></div></div>
+      <div class="share-option" onclick="buildShareMessage('Partenaire de vie')"><div class="share-option-icon" style="background:#E8F5EE">👫</div><div><div class="share-option-label">Mon / ma partenaire</div><div class="share-option-sub">Registre proche, informel</div></div></div>
+      <div class="share-option" onclick="buildShareMessage('Mon enfant')"><div class="share-option-icon" style="background:#FBF5E8">👶</div><div><div class="share-option-label">Mon enfant</div><div class="share-option-sub">Formulation claire et simple</div></div></div>
+      <div class="share-option" onclick="buildShareMessage('Un collègue')"><div class="share-option-icon" style="background:#EDF0FA">💼</div><div><div class="share-option-label">Un collègue</div><div class="share-option-sub">Ton professionnel, factuel</div></div></div>
+      <div class="share-option" onclick="buildShareMessage('_copy')"><div class="share-option-icon" style="background:#F0F0F0">📋</div><div><div class="share-option-label">Générer le message</div><div class="share-option-sub">Je génère un message prêt à l'emploi</div></div></div>
     </div>
     <div id="share-step2" style="display:none">
       <div class="share-back-btn" onclick="backToStep1()">← Retour</div>
@@ -767,11 +1076,11 @@ body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro T
   <div class="status-sheet" onclick="event.stopPropagation()">
     <div class="modal-handle"></div>
     <div class="modal-title">Changer le statut</div>
-    <div class="status-option" onclick="setStatus('actif')"><div class="status-icon" style="background:var(--blue-soft)">🔵</div><div><div style="font-size:15px;font-weight:800;color:var(--navy)">Actif</div><div style="font-size:12px;color:var(--muted)">En cours de surveillance</div></div></div>
-    <div class="status-option" onclick="setStatus('fait')"><div class="status-icon" style="background:var(--green-soft)">✅</div><div><div style="font-size:15px;font-weight:800;color:var(--navy)">Fait</div><div style="font-size:12px;color:var(--muted)">Traité, plus besoin de suivi</div></div></div>
-    <div class="status-option" onclick="setStatus('reporte')"><div class="status-icon" style="background:var(--amber-soft)">↷</div><div><div style="font-size:15px;font-weight:800;color:var(--navy)">Reporté</div><div style="font-size:12px;color:var(--muted)">Je rappelle dans 7 jours</div></div></div>
-    <div class="status-option" onclick="setStatus('annule')"><div class="status-icon" style="background:var(--red-soft)">✕</div><div><div style="font-size:15px;font-weight:800;color:var(--navy)">Annulé</div><div style="font-size:12px;color:var(--muted)">Les rappels liés seront désactivés</div></div></div>
-    <div class="status-option" onclick="setStatus('archive')"><div class="status-icon" style="background:var(--surface-soft)">📦</div><div><div style="font-size:15px;font-weight:800;color:var(--navy)">Archivé</div><div style="font-size:12px;color:var(--muted)">Conservé en mémoire silencieuse</div></div></div>
+    <div class="status-option" onclick="setStatus('actif')"><div style="width:36px;height:36px;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:16px">🔵</div><div><div style="font-size:15px;font-weight:500;color:var(--text-primary)">Actif</div><div style="font-size:12px;color:var(--text-secondary)">En cours de surveillance</div></div></div>
+    <div class="status-option" onclick="setStatus('fait')"><div style="width:36px;height:36px;border-radius:10px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:16px">✅</div><div><div style="font-size:15px;font-weight:500;color:var(--text-primary)">Fait</div><div style="font-size:12px;color:var(--text-secondary)">Traité, plus besoin de suivi</div></div></div>
+    <div class="status-option" onclick="setStatus('reporte')"><div style="width:36px;height:36px;border-radius:10px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;font-size:16px">↷</div><div><div style="font-size:15px;font-weight:500;color:var(--text-primary)">Reporté</div><div style="font-size:12px;color:var(--text-secondary)">Je rappelle dans 7 jours</div></div></div>
+    <div class="status-option" onclick="setStatus('annule')"><div style="width:36px;height:36px;border-radius:10px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;font-size:16px">✕</div><div><div style="font-size:15px;font-weight:500;color:var(--text-primary)">Annulé</div><div style="font-size:12px;color:var(--text-secondary)">Les rappels liés seront désactivés</div></div></div>
+    <div class="status-option" onclick="setStatus('archive')"><div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:16px">📦</div><div><div style="font-size:15px;font-weight:500;color:var(--text-primary)">Archivé</div><div style="font-size:12px;color:var(--text-secondary)">Conservé en mémoire silencieuse</div></div></div>
   </div>
 </div>
 
@@ -789,10 +1098,10 @@ const S = {
   memories: [
     {id:'m1',domain:'finances',color:'#1E3A5F',title:'Forfait mobile 5,99€ → 19,99€',context:'Finances · Promo 12 mois détectée',next:'Alerte J-30 et J-15 programmées',urgency:1,status:'actif'},
     {id:'m2',domain:'sante',color:'#3FA37A',title:'Renouvellement ordonnance',context:'Santé · Médicaments J-3',next:'À faire AUJOURD\'HUI',urgency:3,status:'actif'},
-    {id:'m3',domain:'vehicule',color:'#F59E0B',title:'Contrôle technique',context:'Véhicule · Expire dans 12 jours',next:'Prendre RDV cette semaine',urgency:2,status:'actif'},
+    {id:'m3',domain:'vehicule',color:'#C47D2B',title:'Contrôle technique',context:'Véhicule · Expire dans 12 jours',next:'Prendre RDV cette semaine',urgency:2,status:'actif'},
     {id:'m4',domain:'finances',color:'#3FA37A',title:'Épargne mensuelle programmée',context:'Finances · Virement automatique',next:'Prochain le 28 juin',urgency:0,status:'actif'},
     {id:'m5',domain:'admin',color:'#1E3A5F',title:'Passeport',context:'Administratif · Expire déc. 2026',next:'6 mois restants — surveiller',urgency:1,status:'actif'},
-    {id:'m6',domain:'famille',color:'#F59E0B',title:'Vaccin enfant — 18 mois',context:'Famille · Rappel vaccinal',next:'Jeudi 18 juin',urgency:2,status:'actif'},
+    {id:'m6',domain:'famille',color:'#C47D2B',title:'Vaccin enfant — 18 mois',context:'Famille · Rappel vaccinal',next:'Jeudi 18 juin',urgency:2,status:'actif'},
     {id:'m7',domain:'logement',color:'#1E3A5F',title:'Bail — reconduction automatique',context:'Logement · Notification nov. 2026',next:'Décision avant nov. 2026',urgency:0,status:'actif'},
     {id:'m8',domain:'finances',color:'#3FA37A',title:'Assurance auto à renégocier',context:'Finances · Économie 180€ potentielle',next:'Opportunité détectée maintenant',urgency:1,status:'actif'},
     {id:'m9',domain:'sante',color:'#3FA37A',title:'Vaccin grippe — famille',context:'Santé · Rappel annuel',next:'Je te rappelle en octobre',urgency:0,status:'actif'},
@@ -801,44 +1110,30 @@ const S = {
 };
 
 // ═══════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════
-function navigate(screen, el) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav button').forEach(n=>n.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
-  if (el) el.classList.add('active');
-  else document.querySelectorAll('.nav button').forEach(b=>{ if(b.dataset.screen===screen) b.classList.add('active'); });
-}
-
-// ═══════════════════════════════════════
 // MODE DÉMO / RÉEL
 // ═══════════════════════════════════════
 function toggleMode() {
   S.isDemo = !S.isDemo;
   const banner = document.getElementById('demo-banner');
-  const pill = document.getElementById('demo-pill');
-  const pillText = document.getElementById('demo-pill-text');
-  const dot = document.getElementById('demo-dot');
-  const tog = document.getElementById('mode-toggle');
+  const btn = banner.querySelector('.demo-toggle-btn');
   document.getElementById('mode-setting-title').textContent = S.isDemo ? 'Mode Démo actif' : 'Mode Réel actif';
   document.getElementById('mode-setting-sub').textContent = S.isDemo ? 'Données fictives · Appuyer pour basculer' : 'Vos données uniquement · Appuyer pour basculer';
-  if (S.isDemo) {
-    banner.style.display = 'flex';
-    pill.style.display = 'inline-flex';
-    pillText.textContent = 'Mode Démo actif';
-    dot.style.background = 'var(--green)';
-    tog.classList.add('on');
-  } else {
-    banner.style.display = 'none';
-    pill.style.background = 'var(--amber-soft)';
-    pill.style.color = '#B46200';
-    pillText.textContent = 'Mode Réel';
-    dot.style.background = 'var(--amber)';
-    tog.classList.remove('on');
-  }
+  const tog = document.getElementById('mode-toggle');
+  S.isDemo ? tog.classList.add('on') : tog.classList.remove('on');
+  if (S.isDemo) { banner.style.display='flex'; btn.textContent='Passer en mode Réel'; }
+  else { banner.style.display='none'; }
   computeHorizon(); applyEmptyStates(); renderMemory(currentMemFilter());
   showToast(S.isDemo ? '🎭 Mode Démo activé' : '✓ Mode Réel — vos données uniquement');
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function navigate(screen, el) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  if(el) el.classList.add('active');
 }
 
 // ═══════════════════════════════════════
@@ -849,40 +1144,26 @@ function computeHorizon() {
   const urgent = active.filter(m=>m.urgency>=2).length;
   const warn = active.filter(m=>m.urgency===1).length;
   const card = document.getElementById('horizon-card');
-  const title = document.getElementById('horizon-title');
+  const label = document.getElementById('horizon-label');
+  const text = document.getElementById('horizon-text');
   const sub = document.getElementById('horizon-sub');
-  const pathEl = document.getElementById('shield-path');
-  const checkEl = document.getElementById('shield-check');
-
   if (!S.isDemo || active.length===0) {
-    card.className='horizon-card stable';
-    title.className='stable'; title.textContent='Horizon';
-    sub.textContent='Capturez votre première information.';
-    if(pathEl) pathEl.setAttribute('stroke','#3FA37A');
-    if(checkEl) checkEl.setAttribute('stroke','#3FA37A');
-    return;
+    card.className='cap-horizon stable'; label.style.color='var(--accent)';
+    label.textContent='Horizon'; text.textContent='Aucune responsabilité encore';
+    sub.textContent='Commence par capturer des informations.'; return;
   }
   if (urgent>=2) {
-    card.className='horizon-card charge';
-    title.className='charge'; title.textContent='Chargé';
-    sub.textContent=urgent+' point'+(urgent>1?'s':'')+' d\'attention urgents. Agissez dès aujourd\'hui.';
-    sub.className='charge';
-    if(pathEl) pathEl.setAttribute('stroke','#DC2626');
-    if(checkEl) checkEl.setAttribute('stroke','#DC2626');
+    card.className='cap-horizon charge'; label.style.color='var(--red)';
+    label.textContent='Horizon chargé 🌧️'; text.textContent=urgent+' point'+(urgent>1?'s':'')+' d\'attention urgents';
+    sub.textContent='Plusieurs responsabilités nécessitent une action immédiate. Je te guide dans l\'ordre de priorité.';
   } else if (urgent===1||warn>=2) {
-    card.className='horizon-card surveiller';
-    title.className='surveiller'; title.textContent='À surveiller';
-    sub.textContent='Quelques points à traiter prochainement.';
-    sub.className='surveiller';
-    if(pathEl) pathEl.setAttribute('stroke','#F59E0B');
-    if(checkEl) checkEl.setAttribute('stroke','#F59E0B');
+    card.className='cap-horizon surveiller'; label.style.color='var(--amber)';
+    label.textContent='Horizon à surveiller ⛅'; text.textContent='Quelques points à traiter prochainement';
+    sub.textContent='La plupart de tes responsabilités sont sous contrôle. Un suivi rapide cette semaine suffit.';
   } else {
-    card.className='horizon-card stable';
-    title.className='stable'; title.textContent='Stable';
-    sub.textContent='Aucune action urgente. Vous gardez le contrôle.';
-    sub.className='';
-    if(pathEl) pathEl.setAttribute('stroke','#3FA37A');
-    if(checkEl) checkEl.setAttribute('stroke','#3FA37A');
+    card.className='cap-horizon stable'; label.style.color='var(--green)';
+    label.textContent='Horizon stable 🌤️'; text.textContent='Toutes tes responsabilités sont sous contrôle';
+    sub.textContent='Rien d\'urgent. Je surveille en arrière-plan et te préviendrai dès qu\'une action sera nécessaire.';
   }
 }
 
@@ -891,9 +1172,6 @@ function computeHorizon() {
 // ═══════════════════════════════════════
 function applyEmptyStates() {
   const has = S.isDemo;
-  const empty = d => { const e=document.getElementById(d); if(e) e.style.display='none'; };
-  const show = d => { const e=document.getElementById(d); if(e) e.style.display=''; };
-
   document.getElementById('cap-empty').style.display = (!has&&!S.hasFirstCapture)?'block':'none';
   document.getElementById('cap-onboarding').style.display = !has?'block':'none';
   document.getElementById('cap-content').style.display = has?'block':'none';
@@ -901,24 +1179,22 @@ function applyEmptyStates() {
   document.getElementById('domain-grid').style.display = has?'grid':'none';
   document.getElementById('memoire-empty').style.display = !has?'block':'none';
   document.getElementById('memoire-content').style.display = has?'block':'none';
-
   const active = S.memories.filter(m=>m.status==='actif').length;
-  const ecount = document.getElementById('engine-count');
-  if(ecount) ecount.textContent = 'Moteur de vigilance actif · '+(has?active:0)+' éléments surveillés';
-  const sr = document.getElementById('stat-retenu'); if(sr) sr.textContent = has?S.memories.length:0;
-  const ss = document.getElementById('stat-surveille'); if(ss) ss.textContent = has?active:0;
-  const st = document.getElementById('stat-temps'); if(st) st.textContent = has?Math.max(1,Math.round(S.memories.length*.3))+'h':'0h';
+  document.getElementById('engine-count').textContent = 'Moteur actif · '+(has?active:0)+' surveillés';
+  document.getElementById('stat-retenu').textContent = has?S.memories.length:0;
+  document.getElementById('stat-surveille').textContent = has?active:0;
+  document.getElementById('stat-temps').textContent = has?Math.max(1,Math.round(S.memories.length*.3))+'h':'0h';
 }
 
 // ═══════════════════════════════════════
-// CANCELLED NOTICE
+// CANCELLED NOTICE — helper
 // ═══════════════════════════════════════
 function insertCancelledNotice(afterEl, label) {
-  const n = document.createElement('div');
-  n.className = 'cancelled-notice';
-  n.innerHTML = '<div class="cancelled-notice-icon">🔕</div><div>Les rappels futurs liés à <strong>'+(label||'cette information')+'</strong> ont été désactivés.</div>';
-  afterEl.parentNode.insertBefore(n, afterEl.nextSibling);
-  setTimeout(()=>{ n.style.transition='opacity 1s'; n.style.opacity='0'; setTimeout(()=>n.remove(),1000); }, 5000);
+  const notice = document.createElement('div');
+  notice.className = 'cancelled-notice';
+  notice.innerHTML = '<div class="cancelled-notice-icon">🔕</div><div>Les rappels futurs liés à <strong>'+(label||'cette information')+'</strong> ont été désactivés.</div>';
+  afterEl.parentNode.insertBefore(notice, afterEl.nextSibling);
+  setTimeout(()=>{ notice.style.transition='opacity 1s'; notice.style.opacity='0'; setTimeout(()=>notice.remove(),1000); }, 5000);
 }
 
 // ═══════════════════════════════════════
@@ -935,15 +1211,15 @@ function markDone(itemId, msg) {
 
 function doReport(itemId) {
   const el = document.getElementById(itemId);
-  if(el){ el.style.opacity='.5'; setTimeout(()=>el.style.opacity='1',1800); }
-  showToast('↷ Reporté de 7 jours · Je vous rappelle');
+  if(el){ el.style.opacity='.45'; setTimeout(()=>el.style.opacity='1',1800); }
+  showToast('↷ Reporté de 7 jours · Je te rappelle');
 }
 
 function doCancel(itemId, label) {
   const el = document.getElementById(itemId);
   if(el){
     el.style.transition='opacity .3s'; el.style.opacity='0';
-    setTimeout(()=>{ el.style.display='none'; insertCancelledNotice(el,label); },320);
+    setTimeout(()=>{ el.style.display='none'; insertCancelledNotice(el, label); }, 320);
   }
   const m = S.memories.find(m=>m.status==='actif');
   if(m){ m.status='annule'; m.urgency=0; }
@@ -959,32 +1235,33 @@ function openStatusForForfait(){ S.currentStatusTarget='_forfait'; openModal('st
 
 function setStatus(status) {
   closeModal('status-modal');
-  const tagClass={actif:'active',fait:'done',reporte:'watch',annule:'annule',archive:'archive'};
-  const tagText={actif:'🔵 Actif · Surveillance en cours',fait:'✅ Fait · Traité',reporte:'↷ Reporté · Rappel dans 7 jours',annule:'✕ Annulé · Rappels désactivés',archive:'📦 Archivé'};
-  const toastMsg={actif:'🔵 Actif',fait:'✅ Fait',reporte:'↷ Reporté de 7 jours',annule:'✕ Annulé · Rappels désactivés',archive:'📦 Archivé'};
+  const labels = {actif:'🔵 Actif',fait:'✅ Fait',reporte:'↷ Reporté de 7 jours',annule:'✕ Annulé',archive:'📦 Archivé'};
+  const classMap = {actif:'status-actif',fait:'status-fait',reporte:'status-reporte',annule:'status-annule',archive:'status-archive'};
+  const textMap = {actif:'🔵 Actif · Surveillance en cours',fait:'✅ Fait · Traité',reporte:'↷ Reporté · Rappel dans 7 jours',annule:'✕ Annulé · Rappels désactivés',archive:'📦 Archivé · Mémoire silencieuse'};
 
   if (S.currentStatusTarget==='_forfait') {
-    const lbl = document.getElementById('forfait-status-label');
-    lbl.innerHTML = '<span class="tag '+tagClass[status]+'">'+tagText[status]+'</span>';
-    const notice = document.getElementById('forfait-cancel-notice');
+    document.getElementById('forfait-status-label').innerHTML='<span class="badge '+classMap[status]+'">'+textMap[status]+'</span>';
     if (status==='annule') {
-      notice.style.display='flex';
-      ['alert-j30','alert-j15','alert-monthly'].forEach(id=>{ const e=document.getElementById(id); if(e){e.textContent='Désactivé';e.style.color='var(--light)';} });
-    } else { notice.style.display='none'; }
-    showToast(toastMsg[status]+' — forfait mis à jour'); return;
+      document.getElementById('forfait-cancel-notice').style.display='flex';
+      ['alert-j30','alert-j15','alert-monthly'].forEach(id=>{ const el=document.getElementById(id); if(el){el.textContent='Désactivé';el.style.color='var(--text-muted)';} });
+    } else { document.getElementById('forfait-cancel-notice').style.display='none'; }
+    showToast(labels[status]+' — forfait mis à jour'); return;
   }
 
   if (S.currentStatusTarget) {
     const el = document.getElementById(S.currentStatusTarget);
     if (el && (status==='annule'||status==='fait')) {
       el.style.transition='opacity .3s'; el.style.opacity='0';
-      setTimeout(()=>{ el.style.display='none'; if(status==='annule') insertCancelledNotice(el,null); },320);
+      setTimeout(()=>{
+        el.style.display='none';
+        if(status==='annule') insertCancelledNotice(el, null);
+      },320);
     }
   }
   const m = S.memories.find(m=>m.status==='actif');
   if(m){ m.status=status; if(status==='annule'||status==='fait') m.urgency=0; }
   computeHorizon(); applyEmptyStates(); renderMemory(currentMemFilter());
-  showToast(toastMsg[status]);
+  showToast(labels[status]+(status==='annule'?' · Rappels désactivés':''));
 }
 
 // ═══════════════════════════════════════
@@ -994,15 +1271,16 @@ function openForfaitDetail(){ document.getElementById('forfait-detail').classLis
 function closeForfaitDetail(){ document.getElementById('forfait-detail').classList.remove('open'); }
 
 function forfaitAction(action) {
-  const tagClass={fait:'done',reporter:'watch',annuler:'annule'};
-  const tagText={fait:'✅ Fait · Traité',reporter:'↷ Reporté · Rappel dans 7 jours',annuler:'✕ Annulé · Rappels désactivés'};
-  const toastMsg={fait:'✓ Forfait marqué comme traité',reporter:'↷ Reporté · Je vous rappelle dans 7 jours',annuler:'✕ Annulé · Alertes J-30 et J-15 désactivées'};
-  document.getElementById('forfait-status-label').innerHTML='<span class="tag '+tagClass[action]+'">'+tagText[action]+'</span>';
+  const classMap={fait:'status-fait',reporter:'status-reporte',annuler:'status-annule'};
+  const textMap={fait:'✅ Fait · Traité',reporter:'↷ Reporté · Rappel dans 7 jours',annuler:'✕ Annulé · Rappels désactivés'};
+  const toastMap={fait:'✓ Forfait marqué comme traité',reporter:'↷ Reporté · Je te rappelle dans 7 jours',annuler:'✕ Annulé · Alertes J-30 et J-15 désactivées'};
+  const key = action==='annuler'?'annuler':action;
+  document.getElementById('forfait-status-label').innerHTML='<span class="badge '+classMap[key]+'">'+textMap[key]+'</span>';
   if (action==='annuler') {
     document.getElementById('forfait-cancel-notice').style.display='flex';
-    ['alert-j30','alert-j15','alert-monthly'].forEach(id=>{ const e=document.getElementById(id); if(e){e.textContent='Désactivé';e.style.color='var(--light)';} });
+    ['alert-j30','alert-j15','alert-monthly'].forEach(id=>{ const el=document.getElementById(id); if(el){el.textContent='Désactivé';el.style.color='var(--text-muted)';} });
   }
-  showToast(toastMsg[action]);
+  showToast(toastMap[key]);
   if (action!=='annuler') closeForfaitDetail();
 }
 
@@ -1015,66 +1293,79 @@ function openShare(title, desc) {
   document.getElementById('share-step2').style.display='none';
   openModal('share-modal');
 }
+
 function buildShareMessage(recipient) {
-  const msgs={
-    'Partenaire de vie':'Hé, rappel de Life Memory 🧠\n\n'+S.currentShareTitle+'\n'+S.currentShareDesc+'\n\nTu veux qu\'on s\'en occupe ensemble ?',
+  const msgs = {
+    'Partenaire de vie': 'Hé, petit rappel de Life Memory 🧠\n\n'+S.currentShareTitle+'\n'+S.currentShareDesc+'\n\nTu veux qu\'on s\'en occupe ensemble ?',
     'Mon enfant': S.currentShareTitle+'\n\n'+S.currentShareDesc,
-    'Un collègue':'Pour info :\n\n'+S.currentShareTitle+'\n'+S.currentShareDesc,
+    'Un collègue': 'Pour info :\n\n'+S.currentShareTitle+'\n'+S.currentShareDesc,
     '_copy': S.currentShareTitle+'\n\n'+S.currentShareDesc,
   };
-  const recLabels={'Partenaire de vie':'Pour mon / ma partenaire','Mon enfant':'Pour mon enfant','Un collègue':'Pour un collègue','_copy':'Message généré'};
-  document.getElementById('share-recipient-label').textContent=recLabels[recipient]||'Message';
-  document.getElementById('share-message-text').value=msgs[recipient]||msgs['_copy'];
+  const recLabels = {'Partenaire de vie':'Pour mon / ma partenaire','Mon enfant':'Pour mon enfant','Un collègue':'Pour un collègue','_copy':'Message généré'};
+  document.getElementById('share-recipient-label').textContent = recLabels[recipient]||'Message';
+  document.getElementById('share-message-text').value = msgs[recipient]||msgs['_copy'];
   document.getElementById('share-step1').style.display='none';
   document.getElementById('share-step2').style.display='block';
 }
-function backToStep1(){ document.getElementById('share-step1').style.display='block'; document.getElementById('share-step2').style.display='none'; }
-function copyShareMessage(){ try{navigator.clipboard.writeText(document.getElementById('share-message-text').value);}catch(e){} closeModal('share-modal'); showToast('📋 Message copié'); }
-function sendShareMessage(){ try{navigator.clipboard.writeText(document.getElementById('share-message-text').value);}catch(e){} closeModal('share-modal'); showToast('✓ Message prêt à envoyer'); }
+
+function backToStep1() {
+  document.getElementById('share-step1').style.display='block';
+  document.getElementById('share-step2').style.display='none';
+}
+
+function copyShareMessage() {
+  try { navigator.clipboard.writeText(document.getElementById('share-message-text').value); } catch(e){}
+  closeModal('share-modal'); showToast('📋 Message copié');
+}
+
+function sendShareMessage() {
+  try { navigator.clipboard.writeText(document.getElementById('share-message-text').value); } catch(e){}
+  closeModal('share-modal'); showToast('✓ Message prêt à envoyer');
+}
 
 // ═══════════════════════════════════════
-// DOMAINS (Ma Vie)
+// DOMAINS
 // ═══════════════════════════════════════
-const domains=[
+const domains = [
   {id:'logement',icon:'🏠',name:'Logement',count:6,fill:85,color:'#1E3A5F',alert:false,items:[
-    {icon:'🔥',title:'Chaudière — entretien annuel',sub:'Contrat de maintenance · Octobre 2026',badge:'active',badgeText:'Surveillance'},
-    {icon:'🔑',title:'Bail — reconduction',sub:'Notification nov. 2026 · Décision requise',badge:'done',badgeText:'À jour'},
-    {icon:'⚡',title:'Contrat énergie',sub:'Écart de 43€ détecté · Vérif. lundi',badge:'watch',badgeText:'Écart 43€'},
-    {icon:'💧',title:'Fuite robinet',sub:'Signalé le 10 juin · Appeler plombier',badge:'danger',badgeText:'Urgent'},
+    {icon:'🔥',title:'Chaudière — entretien annuel',sub:'Contrat de maintenance',timing:'Octobre 2026',badge:'badge-accent',badgeText:'Surveillance'},
+    {icon:'🔑',title:'Bail — reconduction',sub:'Notification nov. 2026',timing:'Décision nov. 2026',badge:'badge-green',badgeText:'À jour'},
+    {icon:'⚡',title:'Contrat énergie',sub:'Écart de 43€ détecté',timing:'Vérif. lundi',badge:'badge-amber',badgeText:'Écart 43€'},
+    {icon:'💧',title:'Fuite robinet',sub:'Signalé le 10 juin',timing:'Appeler plombier',badge:'badge-red',badgeText:'Urgent'},
   ]},
   {id:'finances',icon:'💰',name:'Finances',count:7,fill:70,color:'#3FA37A',alert:true,items:[
-    {icon:'📱',title:'Forfait mobile promo',sub:'5,99€ → 19,99€ dans 12 mois · Alerte J-30/J-15',badge:'active',badgeText:'Surveiller'},
-    {icon:'📊',title:'Épargne mensuelle',sub:'Virement automatique · 28 juin',badge:'done',badgeText:'Actif'},
-    {icon:'💳',title:'Assurance auto',sub:'Renégociation possible · ~180€/an',badge:'watch',badgeText:'Opportunité'},
-    {icon:'📑',title:'Déclaration impôts',sub:'Délai 20 juin · 6 jours',badge:'danger',badgeText:'Urgent'},
+    {icon:'📱',title:'Forfait mobile promo',sub:'5,99€ → 19,99€ dans 12 mois',timing:'Alerte J-30/J-15',badge:'badge-accent',badgeText:'Surveiller'},
+    {icon:'📊',title:'Épargne mensuelle',sub:'Virement automatique',timing:'28 juin',badge:'badge-green',badgeText:'Actif'},
+    {icon:'💳',title:'Assurance auto',sub:'Renégociation possible',timing:'~180€/an',badge:'badge-amber',badgeText:'Opportunité'},
+    {icon:'📑',title:'Déclaration impôts',sub:'Délai 20 juin',timing:'6 jours',badge:'badge-red',badgeText:'Urgent'},
   ]},
-  {id:'famille',icon:'👨‍👩‍👧',name:'Famille',count:4,fill:60,color:'#F59E0B',alert:false,items:[
-    {icon:'👶',title:'Vaccin enfant — 18 mois',sub:'Rappel vaccinal · Jeudi 18 juin',badge:'watch',badgeText:'Cette semaine'},
-    {icon:'🎒',title:'Rentrée scolaire',sub:'Liste fournitures · Août 2026',badge:'active',badgeText:'Surveillance'},
+  {id:'famille',icon:'👨‍👩‍👧',name:'Famille',count:4,fill:60,color:'#C47D2B',alert:false,items:[
+    {icon:'👶',title:'Vaccin enfant — 18 mois',sub:'Rappel vaccinal',timing:'Jeudi 18 juin',badge:'badge-amber',badgeText:'Cette semaine'},
+    {icon:'🎒',title:'Rentrée scolaire',sub:'Liste fournitures',timing:'Août 2026',badge:'badge-accent',badgeText:'Surveillance'},
   ]},
   {id:'sante',icon:'🏥',name:'Santé',count:4,fill:50,color:'#3FA37A',alert:true,items:[
-    {icon:'💊',title:'Ordonnance — renouvellement',sub:'Médicaments J-3 · Aujourd\'hui',badge:'danger',badgeText:'Urgent'},
-    {icon:'🦷',title:'Remboursement dentiste',sub:'Dossier mutuelle · +12 jours',badge:'watch',badgeText:'En attente'},
-    {icon:'💉',title:'Vaccin grippe — famille',sub:'Rappel annuel · Octobre',badge:'active',badgeText:'Surveillance'},
+    {icon:'💊',title:'Ordonnance — renouvellement',sub:'Médicaments J-3',timing:'Aujourd\'hui',badge:'badge-red',badgeText:'Urgent'},
+    {icon:'🦷',title:'Remboursement dentiste',sub:'Dossier mutuelle',timing:'+12 jours',badge:'badge-amber',badgeText:'En attente'},
+    {icon:'💉',title:'Vaccin grippe — famille',sub:'Rappel annuel',timing:'Octobre',badge:'badge-accent',badgeText:'Surveillance'},
   ]},
-  {id:'vehicule',icon:'🚗',name:'Véhicule',count:3,fill:40,color:'#F59E0B',alert:true,items:[
-    {icon:'🔧',title:'Contrôle technique',sub:'Expire dans 12 jours · RDV urgent',badge:'danger',badgeText:'12 jours'},
-    {icon:'🛢️',title:'Vidange',sub:'Kilométrage bientôt atteint · ~2 mois',badge:'active',badgeText:'Surveillance'},
+  {id:'vehicule',icon:'🚗',name:'Véhicule',count:3,fill:40,color:'#C47D2B',alert:true,items:[
+    {icon:'🔧',title:'Contrôle technique',sub:'Expire dans 12 jours',timing:'RDV urgent',badge:'badge-red',badgeText:'12 jours'},
+    {icon:'🛢️',title:'Vidange',sub:'Kilométrage bientôt atteint',timing:'~2 mois',badge:'badge-accent',badgeText:'Surveillance'},
   ]},
   {id:'admin',icon:'📋',name:'Administratif',count:5,fill:75,color:'#1E3A5F',alert:true,items:[
-    {icon:'🛂',title:'Passeport',sub:'Expire déc. 2026 · 6 mois restants',badge:'watch',badgeText:'6 mois'},
-    {icon:'🪪',title:'Carte d\'identité',sub:'Valide jusqu\'en 2030',badge:'done',badgeText:'À jour'},
+    {icon:'🛂',title:'Passeport',sub:'Expire déc. 2026',timing:'6 mois',badge:'badge-amber',badgeText:'6 mois'},
+    {icon:'🪪',title:'Carte d\'identité',sub:'Valide jusqu\'en 2030',timing:'À jour',badge:'badge-green',badgeText:'À jour'},
   ]},
   {id:'projets',icon:'🎯',name:'Projets',count:3,fill:30,color:'#6B7CB8',alert:false,items:[
-    {icon:'🏗️',title:'Travaux — 3 devis reçus',sub:'Décision à prendre · Sept. 2026',badge:'active',badgeText:'En cours'},
-    {icon:'✈️',title:'Vacances été',sub:'Billets + hébergement · À réserver',badge:'watch',badgeText:'À réserver'},
+    {icon:'🏗️',title:'Travaux — 3 devis reçus',sub:'Décision à prendre',timing:'Sept. 2026',badge:'badge-accent',badgeText:'En cours'},
+    {icon:'✈️',title:'Vacances été',sub:'Billets + hébergement',timing:'Action requise',badge:'badge-amber',badgeText:'À réserver'},
   ]},
 ];
 
 const grid = document.getElementById('domain-grid');
 domains.forEach(d=>{
   const c=document.createElement('div'); c.className='domain-card'; c.onclick=()=>openDomain(d);
-  c.innerHTML=(d.alert?'<div class="domain-alert"></div>':'')+'<div class="domain-card-icon">'+d.icon+'</div><div class="domain-card-name">'+d.name+'</div><div class="domain-card-count">'+d.count+' éléments</div><div class="domain-bar"><div class="domain-fill" style="width:'+d.fill+'%;background:'+d.color+'"></div></div>';
+  c.innerHTML=(d.alert?'<div class="domain-alert"></div>':'')+'<div class="domain-card-icon">'+d.icon+'</div><div class="domain-card-name">'+d.name+'</div><div class="domain-card-count">'+d.count+' éléments</div><div class="domain-status-bar"><div class="domain-status-fill" style="width:'+d.fill+'%;background:'+d.color+'"></div></div>';
   grid.appendChild(c);
 });
 
@@ -1082,14 +1373,12 @@ function openDomain(d) {
   document.getElementById('detail-icon').textContent=d.icon;
   document.getElementById('detail-title').textContent=d.name;
   const content=document.getElementById('detail-content'); content.innerHTML='';
-  const lbl=document.createElement('div'); lbl.className='section-head'; lbl.style.padding='0 20px';
-  lbl.innerHTML='<div class="section-title">'+d.items.length+' responsabilités</div>';
-  content.appendChild(lbl);
+  const lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent=d.items.length+' responsabilités'; content.appendChild(lbl);
   d.items.forEach((item,i)=>{
     const iid='resp-'+d.id+'-'+i;
-    const el=document.createElement('div'); el.className='resp-card'; el.id=iid;
+    const el=document.createElement('div'); el.className='responsibility-item'; el.id=iid;
     const t=item.title.replace(/'/g,"\\'"); const s=item.sub.replace(/'/g,"\\'");
-    el.innerHTML='<div class="resp-row"><div class="resp-icon">'+item.icon+'</div><div class="resp-content"><div class="resp-title">'+item.title+'</div><div class="resp-sub">'+item.sub+'</div><div class="action-row"><button class="action-btn fait" onclick="markDone(\''+iid+'\',\'✓ Traité\')">✓ Fait</button><button class="action-btn reporter" onclick="doReport(\''+iid+'\')">↷ Reporter</button><button class="action-btn partager" onclick="openShare(\''+t+'\',\''+s+'\')">⬆ Partager</button><button class="action-btn annuler" onclick="doCancel(\''+iid+'\',\''+t+'\')">✕ Annuler</button></div></div><span class="tag '+item.badge+'">'+item.badgeText+'</span></div>';
+    el.innerHTML='<div class="resp-row"><div class="resp-icon">'+item.icon+'</div><div class="resp-content"><div class="resp-title">'+item.title+'</div><div class="resp-sub">'+item.sub+'</div><div style="margin-top:6px"><span class="badge '+item.badge+'">'+item.badgeText+'</span><span style="font-size:12px;color:var(--text-secondary);margin-left:6px">'+item.timing+'</span></div><div class="action-row"><button class="action-btn fait" onclick="markDone(\''+iid+'\',\'✓ Traité\')">✓ Fait</button><button class="action-btn reporter" onclick="doReport(\''+iid+'\')">↷ Reporter</button><button class="action-btn partager" onclick="openShare(\''+t+'\',\''+s+'\')">⬆ Partager</button><button class="action-btn annuler" onclick="doCancel(\''+iid+'\',\''+t+'\')">✕ Annuler</button></div></div></div>';
     content.appendChild(el);
   });
   document.getElementById('domain-detail').classList.add('open');
@@ -1099,19 +1388,19 @@ function closeDomain(){ document.getElementById('domain-detail').classList.remov
 // ═══════════════════════════════════════
 // MEMORY
 // ═══════════════════════════════════════
-const tagClass={actif:'active',fait:'done',reporte:'watch',annule:'annule',archive:'archive'};
-const tagText={actif:'Actif',fait:'Fait',reporte:'Reporté',annule:'Annulé',archive:'Archivé'};
+const statusLabels={actif:'🔵 Actif',fait:'✅ Fait',reporte:'↷ Reporté',annule:'✕ Annulé',archive:'📦 Archivé'};
+const statusClass={actif:'status-actif',fait:'status-fait',reporte:'status-reporte',annule:'status-annule',archive:'status-archive'};
 
 function renderMemory(list) {
   const c=document.getElementById('memory-list'); if(!c) return; c.innerHTML='';
-  if(!list.length){ c.innerHTML='<div style="padding:32px 20px;text-align:center;color:var(--muted);font-size:14px">Aucun élément dans cette catégorie.</div>'; return; }
+  if(!list.length){ c.innerHTML='<div style="padding:32px 24px;text-align:center;color:var(--text-muted);font-size:14px">Aucun élément dans cette catégorie.</div>'; return; }
   list.forEach(m=>{
     const el=document.createElement('div');
-    el.className='mem-item'+(m.status==='fait'?' fait':m.status==='annule'?' annule':'');
+    el.className='memory-item'+(m.status==='fait'?' fait':m.status==='annule'?' annule':'');
     el.id='mem-'+m.id;
-    const ub=m.urgency>=2?'<span class="tag danger" style="font-size:11px;padding:4px 8px">Urgent</span>':m.urgency===1?'<span class="tag watch" style="font-size:11px;padding:4px 8px">Surveiller</span>':'';
+    const ub=m.urgency>=2?'<span class="badge badge-red" style="font-size:10px">Urgent</span>':m.urgency===1?'<span class="badge badge-amber" style="font-size:10px">Surveiller</span>':'';
     const tt=m.title.replace(/'/g,"\\'"); const cc=m.context.replace(/'/g,"\\'");
-    el.innerHTML='<div class="mem-dot" style="background:'+m.color+'"></div><div class="mem-content"><div class="mem-title">'+m.title+'</div><div class="mem-ctx">'+m.context+'</div><div class="mem-status-row"><span class="tag '+tagClass[m.status]+'" style="font-size:11px;padding:4px 8px">'+tagText[m.status]+'</span>'+ub+'</div><div class="mem-next">→ '+m.next+'</div><div class="action-row" style="margin-top:8px"><button class="action-btn fait" onclick="memAction(\''+m.id+'\',\'fait\')">✓ Fait</button><button class="action-btn reporter" onclick="memAction(\''+m.id+'\',\'reporte\')">↷ Reporter</button><button class="action-btn partager" onclick="openShare(\''+tt+'\',\''+cc+'\')">⬆ Partager</button><button class="action-btn annuler" onclick="memAction(\''+m.id+'\',\'annule\')">✕ Annuler</button></div></div>';
+    el.innerHTML='<div class="memory-domain-dot" style="background:'+m.color+'"></div><div class="memory-content"><div class="memory-title">'+m.title+'</div><div class="memory-context">'+m.context+'</div><div class="memory-status-row"><span class="badge '+statusClass[m.status]+'" style="font-size:10px">'+statusLabels[m.status]+'</span>'+ub+'</div><div class="memory-next">→ '+m.next+'</div><div class="action-row" style="margin-top:6px"><button class="action-btn fait" onclick="memAction(\''+m.id+'\',\'fait\')">✓ Fait</button><button class="action-btn reporter" onclick="memAction(\''+m.id+'\',\'reporte\')">↷ Reporter</button><button class="action-btn partager" onclick="openShare(\''+tt+'\',\''+cc+'\')">⬆ Partager</button><button class="action-btn annuler" onclick="memAction(\''+m.id+'\',\'annule\')">✕ Annuler</button></div></div><span class="memory-chevron">›</span>';
     c.appendChild(el);
   });
 }
@@ -1141,47 +1430,46 @@ function filterMemory(q){ const b=currentMemFilter(); renderMemory(q?b.filter(m=
 function setFilter(el,type){ document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active')); el.classList.add('active'); _filter=type; renderMemory(currentMemFilter()); }
 
 // ═══════════════════════════════════════
-// CAPTURE & AI
+// CAPTURE
 // ═══════════════════════════════════════
-function quickCapture(text){ document.getElementById('capture-text').value=text+' — '; navigate('retenir',null); setTimeout(()=>document.getElementById('capture-text').focus(),100); }
-function onCaptureInput(){ if(!document.getElementById('capture-text').value.trim()) document.getElementById('ai-panel').classList.remove('show'); }
+function quickCapture(text){ document.getElementById('capture-text').value=text+' — '; navigate('retenir',document.querySelector('[data-screen=retenir]')); setTimeout(()=>document.getElementById('capture-text').focus(),100); }
+function onCaptureInput(){ if(!document.getElementById('capture-text').value.trim()) document.getElementById('ai-panel').classList.remove('visible'); }
 
 const aiR={
-  forfait:{text:'Promotion temporaire détectée. Je programme deux alertes automatiques (J-30 et J-15) pour vous permettre de renégocier avant la hausse.',fields:[{l:'Type',v:'Promo temporaire'},{l:'Prix actuel',v:'5,99€/mois'},{l:'Prix futur',v:'19,99€/mois'},{l:'Économie',v:'~168€/an'},{l:'Alerte J-30',v:'✓ Programmée'},{l:'Alerte J-15',v:'✓ Programmée'}]},
-  garantie:{text:'Garantie enregistrée. Je vous rappelle 2 mois avant expiration.',fields:[{l:'Type',v:'Garantie'},{l:'Alerte',v:'2 mois avant'},{l:'Domaine',v:'Logement'},{l:'Statut',v:'Surveillé'}]},
-  medicament:{text:'Traitement détecté. Je surveille et vous préviens 5 jours avant la fin du stock.',fields:[{l:'Type',v:'Médicament'},{l:'Alerte stock',v:'J-5'},{l:'Domaine',v:'Santé'},{l:'Fréquence',v:'Récurrent'}]},
-  assurance:{text:'Contrat enregistré. Je surveille le marché et vous signale les opportunités.',fields:[{l:'Type',v:'Assurance'},{l:'Domaine',v:'Finances'},{l:'Quand utile ?',v:'À l\'échéance'},{l:'Statut',v:'Surveillé'}]},
-  default:{text:'Information analysée et classée. Je programme le moment optimal de restitution.',fields:[{l:'Domaine',v:'Administratif'},{l:'Type',v:'Responsabilité'},{l:'Timing',v:'Calculé auto'},{l:'Statut',v:'Surveillé'}]}
+  forfait:{text:'Promotion temporaire détectée. Je programme deux alertes automatiques (J-30 et J-15) pour renégocier avant la hausse.',fields:[{l:'Domaine',v:'💰 Finances'},{l:'Type',v:'Promo temporaire'},{l:'Prix actuel',v:'5,99€/mois'},{l:'Prix futur',v:'19,99€/mois'},{l:'Fin promo',v:'Dans 12 mois'},{l:'Alerte J-30',v:'✓ Programmée'},{l:'Alerte J-15',v:'✓ Programmée'},{l:'Économie',v:'~168€/an'}]},
+  garantie:{text:'Garantie enregistrée. Je te rappelle 2 mois avant expiration.',fields:[{l:'Domaine',v:'🏠 Logement'},{l:'Type',v:'Garantie produit'},{l:'Alerte',v:'2 mois avant'},{l:'Surveillance',v:'✓ Active'}]},
+  medicament:{text:'Traitement détecté. Je surveille et te préviens 5 jours avant la fin du stock.',fields:[{l:'Domaine',v:'🏥 Santé'},{l:'Type',v:'Médicament'},{l:'Alerte stock',v:'J-5 de la fin'},{l:'Fréquence',v:'Récurrent'}]},
+  assurance:{text:'Contrat enregistré. Je surveille le marché et te signale les opportunités.',fields:[{l:'Domaine',v:'💰 Finances'},{l:'Type',v:'Assurance'},{l:'Quand utile ?',v:'À l\'échéance'},{l:'Marché',v:'✓ Surveillance active'}]},
+  default:{text:'Information analysée et classée. Je programme le moment optimal de restitution.',fields:[{l:'Domaine',v:'📋 Administratif'},{l:'Type',v:'Responsabilité'},{l:'Timing',v:'Calculé auto'},{l:'Surveillance',v:'✓ Active'}]}
 };
 function getAIR(t){ const s=t.toLowerCase(); if(s.includes('forfait')||s.includes('5,99')||s.includes('19,99')||s.includes('promo')) return aiR.forfait; if(s.includes('garantie')||s.includes('expire')) return aiR.garantie; if(s.includes('médicament')||s.includes('ordonnance')) return aiR.medicament; if(s.includes('assurance')||s.includes('contrat')) return aiR.assurance; return aiR.default; }
 
 function submitCapture(){
   const val=document.getElementById('capture-text').value.trim(); if(!val) return;
-  const panel=document.getElementById('ai-panel'); panel.classList.add('show');
-  document.getElementById('ai-text').innerHTML='<span class="loading-dots"><span></span><span></span><span></span></span>';
+  const panel=document.getElementById('ai-panel'); panel.classList.add('visible');
+  document.getElementById('ai-text').innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
   document.getElementById('ai-fields').innerHTML=''; document.getElementById('ai-actions').innerHTML='';
   setTimeout(()=>{
     const r=getAIR(val);
     document.getElementById('ai-text').textContent=r.text;
-    document.getElementById('ai-fields').innerHTML=r.fields.map(f=>'<div class="ai-field"><div class="ai-label">'+f.l+'</div><div class="ai-val">'+f.v+'</div></div>').join('');
-    document.getElementById('ai-actions').innerHTML='<button class="small-btn" onclick="cancelCapture()">Modifier</button><button class="primary-btn" onclick="confirmCapture()">Confirmer ✓</button>';
+    document.getElementById('ai-fields').innerHTML=r.fields.map(f=>'<div class="ai-field"><span class="ai-field-label">'+f.l+'</span><span class="ai-field-value">'+f.v+'</span></div>').join('');
+    document.getElementById('ai-actions').innerHTML='<button class="ai-action-btn" onclick="cancelCapture()">Modifier</button><button class="ai-action-btn primary" onclick="confirmCapture()">Confirmer & Retenir ✓</button>';
   },1200);
 }
-function cancelCapture(){ document.getElementById('ai-panel').classList.remove('show'); }
+function cancelCapture(){ document.getElementById('ai-panel').classList.remove('visible'); }
 function confirmCapture(){
   const val=document.getElementById('capture-text').value.trim();
-  document.getElementById('ai-panel').classList.remove('show'); document.getElementById('capture-text').value='';
+  document.getElementById('ai-panel').classList.remove('visible'); document.getElementById('capture-text').value='';
   S.memories.unshift({id:'m'+Date.now(),domain:'admin',color:'#1E3A5F',title:val.length>50?val.slice(0,50)+'…':val,context:'Nouvellement retenu',next:'Surveillance programmée',urgency:0,status:'actif'});
   if(!S.hasFirstCapture){ S.hasFirstCapture=true; const ob=document.getElementById('ob-step2'); const ot=document.getElementById('ob-text2'); if(ob){ob.classList.add('done');ob.textContent='✓';} if(ot) ot.classList.add('done'); }
-  computeHorizon(); applyEmptyStates(); renderMemory(currentMemFilter());
-  showToast('✓ Retenu · Je surveille pour vous 🧠');
+  computeHorizon(); applyEmptyStates(); renderMemory(currentMemFilter()); showToast('✓ Retenu · Je surveille pour toi 🧠');
 }
 
 // ═══════════════════════════════════════
 // SEARCH
 // ═══════════════════════════════════════
-const searchable=[...S.memories.map(m=>({title:m.title,context:m.context,icon:'🧠',bg:'var(--blue-soft)'})),{title:'Contrat énergie — écart 43€',context:'Finances · Vérification lundi',icon:'⚡',bg:'var(--green-soft)'},{title:'Plombier — contact pro',context:'Logement · Contact',icon:'🔧',bg:'var(--surface-soft)'}];
-function doSearch(q){ const sugg=document.getElementById('search-suggestions'); const res=document.getElementById('search-results'); if(!q.trim()){sugg.style.display='';res.style.display='none';return;} sugg.style.display='none';res.style.display=''; const f=searchable.filter(i=>i.title.toLowerCase().includes(q.toLowerCase())||i.context.toLowerCase().includes(q.toLowerCase())); res.innerHTML=f.length?'<div class="card">'+f.map(r=>'<div class="search-result"><div class="search-result-icon" style="background:'+r.bg+'">'+r.icon+'</div><div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--navy)">'+r.title+'</div><div style="font-size:12px;color:var(--muted);margin-top:2px">'+r.context+'</div></div><span style="color:var(--light)">›</span></div>').join('')+'</div>':'<div style="padding:40px 20px;text-align:center;color:var(--muted)">Aucun résultat pour "'+q+'"</div>'; }
+const searchable=[...S.memories.map(m=>({title:m.title,context:m.context,icon:'🧠',bg:'#EDF0FA'})),{title:'Contrat énergie — écart 43€',context:'Finances · Vérification lundi',icon:'⚡',bg:'#E8F5E8'},{title:'Plombier — contact pro',context:'Logement · Contact',icon:'🔧',bg:'#E8F4F4'}];
+function doSearch(q){ const sugg=document.getElementById('search-suggestions'); const res=document.getElementById('search-results'); if(!q.trim()){sugg.style.display='';res.style.display='none';return;} sugg.style.display='none';res.style.display=''; const f=searchable.filter(i=>i.title.toLowerCase().includes(q.toLowerCase())||i.context.toLowerCase().includes(q.toLowerCase())); res.innerHTML=f.length?f.map(r=>'<div class="search-result"><div class="search-result-icon" style="background:'+r.bg+'">'+r.icon+'</div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--text-primary)">'+r.title+'</div><div style="font-size:12px;color:var(--text-secondary);margin-top:2px">'+r.context+'</div></div><span style="color:var(--text-muted)">›</span></div>').join(''):'<div style="padding:40px 24px;text-align:center;color:var(--text-muted)">Aucun résultat pour "'+q+'"</div>'; }
 function doSearchQuery(q){ document.getElementById('search-main').value=q; doSearch(q); }
 
 // ═══════════════════════════════════════
@@ -1189,8 +1477,9 @@ function doSearchQuery(q){ document.getElementById('search-main').value=q; doSea
 // ═══════════════════════════════════════
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-let _toastTimer;
-function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>t.classList.remove('show'),3200); }
+
+let toastTimer;
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),3200); }
 
 // ═══════════════════════════════════════
 // INIT
@@ -1201,5 +1490,299 @@ renderMemory(S.memories);
 
 document.body.addEventListener('touchmove',e=>{ if(e.target.closest('.screen,.modal-sheet,.status-sheet,.detail-sheet')) return; e.preventDefault(); },{passive:false});
 </script>
+
+<script>
+/* ==========================================================
+   PATCH V1.1 — interactions complètes + tests MVP
+   Ajouté pour rendre le prototype plus fiable sans changer l'UI.
+========================================================== */
+(function(){
+  // Mémoire séparée pour éviter que le mode Réel affiche les données Démo.
+  window.LM = window.LM || {};
+  LM.demoMemories = JSON.parse(JSON.stringify(S.memories || []));
+  LM.userMemories = JSON.parse(localStorage.getItem('lifeMemoryUserMemories') || '[]');
+  LM.currentFilter = 'all';
+
+  function activeMemories(){
+    return S.isDemo ? LM.demoMemories : LM.userMemories;
+  }
+  window.activeMemories = activeMemories;
+
+  function saveUserMemories(){
+    localStorage.setItem('lifeMemoryUserMemories', JSON.stringify(LM.userMemories));
+  }
+
+  function hasRealData(){
+    return activeMemories().length > 0;
+  }
+
+  // Remplace l'ancien calcul pour prendre en compte le mode Réel.
+  window.computeHorizon = function(){
+    const data = activeMemories();
+    const active = data.filter(m=>m.status==='actif');
+    const urgent = active.filter(m=>m.urgency>=2).length;
+    const warn = active.filter(m=>m.urgency===1).length;
+    const card = document.getElementById('horizon-card');
+    const title = document.getElementById('horizon-title');
+    const sub = document.getElementById('horizon-sub');
+    const pathEl = document.getElementById('shield-path');
+    const checkEl = document.getElementById('shield-check');
+
+    if (!data.length) {
+      card.className='horizon-card stable';
+      title.className='stable';
+      title.textContent='Horizon';
+      sub.className='';
+      sub.textContent='Capturez votre première information.';
+      if(pathEl) pathEl.setAttribute('stroke','#3FA37A');
+      if(checkEl) checkEl.setAttribute('stroke','#3FA37A');
+      return;
+    }
+
+    if (urgent>=2) {
+      card.className='horizon-card charge';
+      title.className='charge';
+      title.textContent='Chargé';
+      sub.className='charge';
+      sub.textContent=urgent+' points d’attention urgents. Agissez dès aujourd’hui.';
+      if(pathEl) pathEl.setAttribute('stroke','#DC2626');
+      if(checkEl) checkEl.setAttribute('stroke','#DC2626');
+    } else if (urgent===1 || warn>=2) {
+      card.className='horizon-card surveiller';
+      title.className='surveiller';
+      title.textContent='À surveiller';
+      sub.className='surveiller';
+      sub.textContent='Quelques points à traiter prochainement.';
+      if(pathEl) pathEl.setAttribute('stroke','#F59E0B');
+      if(checkEl) checkEl.setAttribute('stroke','#F59E0B');
+    } else {
+      card.className='horizon-card stable';
+      title.className='stable';
+      title.textContent='Stable';
+      sub.className='';
+      sub.textContent='Aucune action urgente. Vous gardez le contrôle.';
+      if(pathEl) pathEl.setAttribute('stroke','#3FA37A');
+      if(checkEl) checkEl.setAttribute('stroke','#3FA37A');
+    }
+  };
+
+  // États vides corrigés.
+  window.applyEmptyStates = function(){
+    const has = hasRealData();
+    const isDemo = S.isDemo;
+
+    document.getElementById('cap-empty').style.display = (!has && !isDemo) ? 'block' : 'none';
+    document.getElementById('cap-onboarding').style.display = (!has && !isDemo) ? 'block' : 'none';
+    document.getElementById('cap-content').style.display = isDemo ? 'block' : 'none';
+
+    document.getElementById('vie-empty').style.display = (!has && !isDemo) ? 'block' : 'none';
+    document.getElementById('domain-grid').style.display = isDemo ? 'grid' : 'none';
+
+    document.getElementById('memoire-empty').style.display = (!has && !isDemo) ? 'block' : 'none';
+    document.getElementById('memoire-content').style.display = has ? 'block' : 'none';
+
+    const active = activeMemories().filter(m=>m.status==='actif').length;
+    const ecount = document.getElementById('engine-count');
+    if(ecount) ecount.textContent = 'Moteur de vigilance actif · '+active+' éléments surveillés';
+    const sr = document.getElementById('stat-retenu'); if(sr) sr.textContent = activeMemories().length;
+    const ss = document.getElementById('stat-surveille'); if(ss) ss.textContent = active;
+    const st = document.getElementById('stat-temps'); if(st) st.textContent = activeMemories().length ? Math.max(1,Math.round(activeMemories().length*.3))+'h' : '0h';
+  };
+
+  window.toggleMode = function(){
+    S.isDemo = !S.isDemo;
+    S.memories = activeMemories();
+
+    const banner = document.getElementById('demo-banner');
+    const pill = document.getElementById('demo-pill');
+    const pillText = document.getElementById('demo-pill-text');
+    const dot = document.getElementById('demo-dot');
+    const tog = document.getElementById('mode-toggle');
+    document.getElementById('mode-setting-title').textContent = S.isDemo ? 'Mode Démo actif' : 'Mode Réel actif';
+    document.getElementById('mode-setting-sub').textContent = S.isDemo ? 'Données fictives · Appuyer pour basculer' : 'Vos données uniquement · Appuyer pour basculer';
+
+    if (S.isDemo) {
+      banner.style.display = 'flex';
+      pill.style.display = 'inline-flex';
+      pill.style.background = 'var(--green-soft)';
+      pill.style.color = '#14724E';
+      pillText.textContent = 'Mode Démo actif';
+      dot.style.background = 'var(--green)';
+      tog.classList.add('on');
+    } else {
+      banner.style.display = 'none';
+      pill.style.display = 'inline-flex';
+      pill.style.background = 'var(--amber-soft)';
+      pill.style.color = '#B46200';
+      pillText.textContent = 'Mode Réel';
+      dot.style.background = 'var(--amber)';
+      tog.classList.remove('on');
+    }
+    computeHorizon();
+    applyEmptyStates();
+    renderMemory(currentMemFilter());
+    showToast(S.isDemo ? '🎭 Mode Démo activé' : '✓ Mode Réel — vos données uniquement');
+  };
+
+  window.currentMemFilter = function(){
+    const data = activeMemories();
+    const f = LM.currentFilter || _filter || 'all';
+    if(f==='all') return data;
+    if(f==='urgent') return data.filter(m=>m.urgency>=2 && m.status==='actif');
+    if(['actif','fait','reporte','annule','archive'].includes(f)) return data.filter(m=>m.status===f);
+    return data.filter(m=>m.domain===f);
+  };
+
+  window.setFilter = function(el,type){
+    document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+    if(el) el.classList.add('active');
+    LM.currentFilter = type;
+    _filter = type;
+    renderMemory(currentMemFilter());
+  };
+
+  window.filterMemory = function(q){
+    const base = currentMemFilter();
+    const clean = (q || '').toLowerCase();
+    renderMemory(clean ? base.filter(m =>
+      m.title.toLowerCase().includes(clean) ||
+      m.context.toLowerCase().includes(clean) ||
+      (m.next||'').toLowerCase().includes(clean)
+    ) : base);
+  };
+
+  window.memAction = function(id, action){
+    const data = activeMemories();
+    const m = data.find(x=>x.id===id);
+    if(!m) return;
+    m.status = action;
+    if(action==='fait' || action==='annule') m.urgency = 0;
+    if(action==='reporte') m.next = 'Je te rappelle dans 7 jours';
+    if(!S.isDemo) saveUserMemories();
+
+    renderMemory(currentMemFilter());
+    computeHorizon();
+    applyEmptyStates();
+
+    const toasts={fait:'✅ Marqué comme fait',reporte:'↷ Reporté de 7 jours',annule:'✕ Annulé · Rappels désactivés'};
+    showToast(toasts[action] || 'Statut mis à jour');
+  };
+
+  // Capture confirmée : ajoute vraiment dans la mémoire active.
+  window.confirmCapture = function(){
+    const val = document.getElementById('capture-text').value.trim();
+    if(!val) return;
+    document.getElementById('ai-panel').classList.remove('show');
+    document.getElementById('capture-text').value = '';
+
+    const lower = val.toLowerCase();
+    const isForfait = lower.includes('forfait') || lower.includes('5,99') || lower.includes('19,99') || lower.includes('promo');
+    const isSante = lower.includes('médicament') || lower.includes('ordonnance') || lower.includes('santé');
+    const isFinance = lower.includes('assurance') || lower.includes('forfait') || lower.includes('€') || lower.includes('abonnement');
+
+    const newMem = {
+      id:'m'+Date.now(),
+      domain: isFinance ? 'finances' : isSante ? 'sante' : 'admin',
+      color: isFinance ? '#1E3A5F' : isSante ? '#3FA37A' : '#6B7280',
+      title: val.length>58 ? val.slice(0,58)+'…' : val,
+      context: isForfait ? 'Finances · Promo temporaire détectée' : isSante ? 'Santé · Nouvel élément' : 'Nouvellement retenu',
+      next: isForfait ? 'Alerte J-30 et J-15 programmées' : 'Surveillance programmée',
+      urgency: isForfait ? 1 : 0,
+      status:'actif'
+    };
+
+    if(S.isDemo) {
+      LM.demoMemories.unshift(newMem);
+    } else {
+      LM.userMemories.unshift(newMem);
+      saveUserMemories();
+    }
+    S.memories = activeMemories();
+
+    if(!S.hasFirstCapture){
+      S.hasFirstCapture=true;
+      const ob=document.getElementById('ob-step2');
+      const ot=document.getElementById('ob-text2');
+      if(ob){ob.classList.add('done');ob.textContent='✓';}
+      if(ot) ot.classList.add('done');
+    }
+
+    computeHorizon();
+    applyEmptyStates();
+    renderMemory(currentMemFilter());
+    showToast('✓ Retenu · Je surveille pour vous 🧠');
+    navigate('memoire', null);
+  };
+
+  // Recherche dynamique, y compris les nouvelles captures.
+  window.doSearch = function(q){
+    const sugg=document.getElementById('search-suggestions');
+    const res=document.getElementById('search-results');
+    if(!q.trim()){
+      sugg.style.display='';
+      res.style.display='none';
+      return;
+    }
+    sugg.style.display='none';
+    res.style.display='';
+    const data = [
+      ...activeMemories().map(m=>({title:m.title,context:m.context,icon:'🧠',bg:'var(--blue-soft)'})),
+      {title:'Contrat énergie — écart 43€',context:'Finances · Vérification lundi',icon:'⚡',bg:'var(--green-soft)'},
+      {title:'Plombier — contact pro',context:'Logement · Contact',icon:'🔧',bg:'var(--surface-soft)'}
+    ];
+    const clean = q.toLowerCase();
+    const f=data.filter(i=>i.title.toLowerCase().includes(clean)||i.context.toLowerCase().includes(clean));
+    res.innerHTML=f.length
+      ? '<div class="card">'+f.map(r=>'<div class="search-result"><div class="search-result-icon" style="background:'+r.bg+'">'+r.icon+'</div><div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--navy)">'+r.title+'</div><div style="font-size:12px;color:var(--muted);margin-top:2px">'+r.context+'</div></div><span style="color:var(--light)">›</span></div>').join('')+'</div>'
+      : '<div style="padding:40px 20px;text-align:center;color:var(--muted)">Aucun résultat pour "'+q+'"</div>';
+  };
+
+  // Simulations pour les boutons non branchés.
+  function bindLooseButtons(){
+    document.querySelectorAll('.small-btn').forEach(btn=>{
+      const t = (btn.textContent || '').trim();
+      if(t.includes('🎤') && !btn.dataset.bound){
+        btn.dataset.bound='1';
+        btn.onclick = function(){
+          const ta=document.getElementById('capture-text');
+          if(ta) ta.value = "Rappel vocal simulé : appeler l'assurance avant la fin du mois";
+          showToast('🎤 Voix simulée · texte ajouté');
+        };
+      }
+      if(t.includes('📷') && !btn.dataset.bound){
+        btn.dataset.bound='1';
+        btn.onclick = function(){ showToast('📷 Photo simulée · OCR à connecter en V2'); };
+      }
+    });
+
+    document.querySelectorAll('.round-info').forEach(el=>{
+      el.onclick = function(){ showToast('Partage intelligent : transmet la bonne info au bon contact'); };
+    });
+
+    document.querySelectorAll('.emergency-card').forEach(el=>{
+      el.onclick = function(){ showToast('🛡️ Accès d’urgence à configurer en V2'); };
+    });
+  }
+
+  // Rendre la recherche accessible via appui long/ double clic mémoire? Ajoute un raccourci discret depuis Mémoire.
+  const memTitle = document.querySelector('#screen-memoire .title p');
+  if(memTitle && !document.getElementById('search-shortcut')){
+    const shortcut = document.createElement('div');
+    shortcut.id='search-shortcut';
+    shortcut.className='big-action';
+    shortcut.style.margin='0 0 16px';
+    shortcut.innerHTML='<div class="iconbox" style="background:var(--blue-soft)">🔍</div><div style="flex:1"><h3>Recherche intelligente</h3><p>Retrouver une info sans le bon mot-clé.</p></div><div class="chev">›</div>';
+    shortcut.onclick=function(){ navigate('recherche', null); };
+    document.getElementById('memoire-content').prepend(shortcut);
+  }
+
+  bindLooseButtons();
+  S.memories = activeMemories();
+  computeHorizon();
+  applyEmptyStates();
+  renderMemory(currentMemFilter());
+})();
+</script>
+
 </body>
 </html>
