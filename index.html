@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Life Memory — Refonte visuelle V1</title>
+<style>
+:root{
+  --bg:#F7F7F2;
+  --surface:#FFFFFF;
+  --surface-soft:#F3F6FB;
+  --navy:#1E3A5F;
+  --navy-2:#0F2D52;
+  --green:#3FA37A;
+  --green-soft:#EAF6F0;
+  --blue-soft:#EDF3FF;
+  --amber:#F59E0B;
+  --amber-soft:#FFF6E6;
+  --red:#DC2626;
+  --red-soft:#FEECEC;
+  --text:#111827;
+  --muted:#6B7280;
+  --light:#9CA3AF;
+  --line:#E7EAF0;
+  --shadow:0 12px 30px rgba(30,58,95,.08),0 2px 8px rgba(30,58,95,.05);
+  --shadow-soft:0 6px 18px rgba(30,58,95,.06);
+  --radius:22px;
+  --nav-h:82px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Inter',system-ui,sans-serif;color:var(--text);max-width:430px;margin:0 auto;min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+.app{height:100dvh;display:flex;flex-direction:column;background:radial-gradient(circle at top right,rgba(63,163,122,.10),transparent 32%),var(--bg)}
+.screens{flex:1;position:relative;overflow:hidden}.screen{position:absolute;inset:0;overflow-y:auto;opacity:0;pointer-events:none;padding:18px 20px calc(var(--nav-h) + 22px);transition:.22s ease;scrollbar-width:none}.screen::-webkit-scrollbar{display:none}.screen.active{opacity:1;pointer-events:auto}
+.statusbar{height:24px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#0B1730;margin-bottom:20px}.status-icons{letter-spacing:1px;font-size:12px}.top-row{display:flex;align-items:center;justify-content:space-between;margin:4px 0 22px}.hello h1,.title h1{font-size:30px;line-height:1.12;letter-spacing:-.8px;color:var(--navy);font-weight:800}.hello p,.title p{font-size:14px;line-height:1.55;color:var(--muted);margin-top:8px}.round-info{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;background:#fff;color:var(--navy);font-weight:800;box-shadow:var(--shadow-soft)}
+.demo-pill{display:inline-flex;align-items:center;gap:7px;background:var(--green-soft);color:#14724E;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:700;margin:0 auto 22px;box-shadow:0 5px 14px rgba(63,163,122,.10)}.demo-dot{width:9px;height:9px;background:var(--green);border-radius:50%}
+.vigilance{display:inline-flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:12px 16px;font-size:14px;font-weight:700;color:#14724E;box-shadow:var(--shadow);margin-bottom:28px}.vigilance-dot{width:13px;height:13px;background:var(--green);border-radius:50%;box-shadow:0 0 0 5px var(--green-soft)}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:26px 0 12px}.section-title{font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:var(--navy);font-weight:800}.section-link{font-size:13px;font-weight:700;color:var(--navy)}
+.horizon-card{position:relative;background:linear-gradient(145deg,#EAF7F0,#FBFFFD);border:1px solid #DCEFE6;border-radius:24px;padding:24px 20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:18px;margin-bottom:26px;overflow:hidden}.horizon-card:after{content:'';position:absolute;right:-36px;top:-46px;width:126px;height:126px;background:rgba(63,163,122,.10);border-radius:50%}.shield{width:62px;height:72px;position:relative;flex:0 0 auto}.shield svg{width:100%;height:100%;display:block}.horizon-text h2{font-size:20px;color:#17684B;letter-spacing:-.3px;margin-bottom:6px}.horizon-text p{font-size:13px;line-height:1.55;color:#24745A}.chev{margin-left:auto;color:var(--navy);font-size:22px;z-index:1}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.list-item{display:flex;align-items:center;gap:14px;padding:17px 16px;border-bottom:1px solid var(--line)}.list-item:last-child{border-bottom:none}.iconbox{width:44px;height:44px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}.item-main{flex:1;min-width:0}.item-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:5px}.item-sub{font-size:12.5px;color:var(--muted);line-height:1.35}.tag{font-size:12px;font-weight:800;padding:7px 11px;border-radius:11px;white-space:nowrap}.tag.active{background:var(--blue-soft);color:var(--navy)}.tag.watch{background:var(--amber-soft);color:#B46200}.tag.done{background:var(--green-soft);color:#18724F}.tag.archive{background:#F1F3F6;color:#4B5563}.tag.danger{background:var(--red-soft);color:var(--red)}
+.big-action{display:flex;align-items:center;gap:15px;background:#fff;border:1px solid var(--line);border-radius:22px;padding:18px 16px;margin-top:26px;box-shadow:var(--shadow)}.big-action .iconbox{background:var(--blue-soft);color:var(--navy)}.big-action h3{font-size:15px;color:var(--navy);margin-bottom:5px}.big-action p{font-size:12.5px;color:var(--muted);line-height:1.45}.big-action .chev{font-size:20px}
+.tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin:24px -20px 22px;padding:0 20px}.tab{font-size:13px;color:var(--navy);font-weight:700;padding-bottom:12px;position:relative;white-space:nowrap}.tab.active:after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:var(--navy);border-radius:2px}
+.plan-card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:24px}.plan-head{display:flex;align-items:center;gap:14px;margin-bottom:18px}.brand-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,#0C3872,#1E3A5F);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900}.plan-name{font-size:17px;font-weight:900;color:var(--navy);margin-bottom:5px}.plan-meta{font-size:12px;color:var(--muted)}.plan-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--navy)}.plan-row:last-of-type{border-bottom:none}.progress-wrap{height:7px;background:#E8EEF8;border-radius:999px;overflow:hidden;flex:0 0 150px}.progress{height:100%;width:65%;background:#386CE8;border-radius:999px}.button-soft{width:100%;border:0;background:#F3F6FB;color:var(--navy);font-weight:800;border-radius:15px;padding:15px;margin-top:14px;font-size:14px}.mini-list{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden}.mini-row{display:flex;align-items:center;gap:14px;padding:15px;border-bottom:1px solid var(--line)}.mini-row:last-child{border-bottom:none}.mini-logo{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-weight:900}.add-plan{display:flex;align-items:center;gap:12px;margin-top:16px;background:#F3F6FB;border:0;width:100%;padding:15px 16px;border-radius:18px;color:var(--navy);font-size:15px;font-weight:800}.plus-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--navy);display:flex;align-items:center;justify-content:center;font-weight:900}
+.share-list{background:#fff;border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}.avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:900;flex:0 0 auto}.dots{font-size:22px;color:var(--navy);padding-left:8px}.emergency-card{background:linear-gradient(145deg,#FFF8EA,#FFFDF7);border:1px solid #F9E0B3;border-radius:22px;padding:18px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);margin-top:26px}.emergency-card .iconbox{background:#fff3d6;color:var(--amber)}.emergency-card h3{font-size:15px;color:var(--navy);margin-bottom:5px}.emergency-card p{font-size:12.5px;color:var(--muted);line-height:1.45}.emergency-card small{display:block;margin-top:7px;color:var(--navy);font-weight:800}
+.capture-panel{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:26px;padding:18px;margin-top:16px}.capture-area{width:100%;min-height:132px;border:0;background:#F8FAFD;border-radius:20px;padding:16px;font:inherit;font-size:15px;line-height:1.55;color:var(--text);outline:none;resize:none}.capture-actions{display:flex;gap:10px;margin-top:14px}.small-btn{flex:1;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px;font-size:13px;font-weight:800;color:var(--navy)}.primary-btn{border:0;background:var(--navy);color:#fff;border-radius:14px;padding:12px 18px;font-size:13px;font-weight:900;box-shadow:0 8px 20px rgba(30,58,95,.20)}.ai-card{display:none;margin-top:18px;background:linear-gradient(145deg,#F0F5FF,#FFFFFF);border:1px solid #DDE7F6;border-radius:22px;padding:16px}.ai-card.show{display:block}.ai-title{font-size:13px;text-transform:uppercase;letter-spacing:.7px;font-weight:900;color:var(--navy);margin-bottom:10px}.ai-card p{font-size:14px;color:var(--text);line-height:1.55}.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.ai-field{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px}.ai-label{font-size:10px;color:var(--muted);font-weight:800;text-transform:uppercase;margin-bottom:5px}.ai-val{font-size:13px;color:var(--navy);font-weight:900}
+.profile-top{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:24px;padding:18px;display:flex;align-items:center;gap:14px}.profile-avatar{width:58px;height:58px;border-radius:18px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.stat{background:#fff;border:1px solid var(--line);box-shadow:var(--shadow-soft);border-radius:18px;padding:14px;text-align:center}.stat strong{font-size:21px;color:var(--navy)}.stat span{display:block;font-size:11px;color:var(--muted);margin-top:5px}.settings-list{margin-top:24px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);border-radius:22px;overflow:hidden}
+.nav{height:var(--nav-h);background:rgba(255,255,255,.93);backdrop-filter:blur(22px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:7px 8px 9px}.nav button{border:0;background:transparent;color:var(--navy);font-size:10px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px}.nav svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8}.nav button.active{color:#0E4C98}.nav .add{width:50px;height:50px;border-radius:15px;background:var(--navy);color:#fff;margin-top:-18px;box-shadow:0 8px 22px rgba(30,58,95,.25);font-size:30px;line-height:1;display:flex;align-items:center;justify-content:center}.nav .add span{margin-top:-3px}.toast{position:fixed;left:50%;bottom:100px;transform:translate(-50%,120px);background:var(--navy);color:#fff;padding:13px 18px;border-radius:16px;font-size:13px;font-weight:800;box-shadow:0 12px 30px rgba(30,58,95,.22);transition:.28s;z-index:20;white-space:nowrap}.toast.show{transform:translate(-50%,0)}
+@media(max-width:360px){.screen{padding-left:16px;padding-right:16px}.hello h1,.title h1{font-size:27px}.list-item{gap:10px}.tag{padding:6px 8px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="screens">
+    <section class="screen active" id="screen-home">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
+      <div style="text-align:center"><div class="demo-pill"><span class="demo-dot"></span>Mode Démo</div></div>
+      <div class="hello"><h1>Bonjour 👋</h1><p>Voici votre vue d'ensemble.</p></div>
+      <div class="vigilance"><span class="vigilance-dot"></span>Moteur de vigilance actif</div>
+      <div class="section-head"><div class="section-title">Cap horizon</div></div>
+      <div class="horizon-card" onclick="toast('Horizon stable : rien d’urgent')">
+        <div class="shield"><svg viewBox="0 0 80 92"><path d="M40 6 68 17v24c0 19-11 34-28 43C23 75 12 60 12 41V17L40 6Z" fill="none" stroke="#3FA37A" stroke-width="6"/><path d="m28 45 8 8 18-20" fill="none" stroke="#3FA37A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="horizon-text"><h2>Stable</h2><p>Aucune action urgente.<br>Vous gardez le contrôle.</p></div><div class="chev">›</div>
+      </div>
+      <div class="section-head"><div class="section-title">Vos actions à venir</div><div class="section-link">Tout voir</div></div>
+      <div class="card">
+        <div class="list-item"><div class="iconbox" style="background:var(--blue-soft)">🗓️</div><div class="item-main"><div class="item-title">Rendez-vous dentiste</div><div class="item-sub">12 mai 2025 à 14h30</div></div><span class="tag active">Actif</span></div>
+        <div class="list-item"><div class="iconbox" style="background:var(--amber-soft)">🛡️</div><div class="item-main"><div class="item-title">Assurance habitation</div><div class="item-sub">À vérifier avant le 25 mai</div></div><span class="tag watch">À surveiller</span></div>
+        <div class="list-item"><div class="iconbox" style="background:var(--green-soft)">✓</div><div class="item-main"><div class="item-title">Révision voiture</div><div class="item-sub">Effectué le 2 mai 2025</div></div><span class="tag done">Fait</span></div>
+        <div class="list-item"><div class="iconbox" style="background:#F1F3F6">🗓️</div><div class="item-main"><div class="item-title">Abonnement salle de sport</div><div class="item-sub">Résilié le 30 avril 2025</div></div><span class="tag archive">Archivé</span></div>
+      </div>
+      <div class="big-action" onclick="showScreen('share')"><div class="iconbox">👥</div><div style="flex:1"><h3>Partager intelligemment</h3><p>Transmettez les bonnes infos,<br>à la bonne personne, au bon moment.</p></div><div class="chev">›</div></div>
+    </section>
+
+    <section class="screen" id="screen-plans">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
+      <div class="title"><h1>Forfaits &<br>Abonnements</h1><p>Vos contrats essentiels au quotidien.</p></div>
+      <div class="tabs"><div class="tab active">Tous</div><div class="tab">Mobiles</div><div class="tab">Box & Internet</div><div class="tab">Autres</div></div>
+      <div class="section-head"><div class="section-title">Votre forfait mobile</div></div>
+      <div class="plan-card">
+        <div class="plan-head"><div class="brand-logo">SFR</div><div style="flex:1"><div class="plan-name">SFR 100Go 5G</div><div class="plan-meta">Mobile · 06 12 34 56 78</div></div><span class="tag done">Actif</span></div>
+        <div class="plan-row"><span>Data</span><div style="display:flex;align-items:center;gap:10px"><div class="progress-wrap"><div class="progress"></div></div><strong>65%</strong></div></div>
+        <div class="plan-row"><span>Prochain prélèvement</span><strong>15 mai 2025 ›</strong></div>
+        <div class="plan-row"><span>Montant</span><strong>25,99 € / mois</strong></div>
+        <div class="plan-row"><span>Engagement</span><strong>Sans engagement</strong></div>
+        <button class="button-soft" onclick="toast('Fiche forfait : alertes J-30 / J-15')">Voir le détail du forfait</button>
+      </div>
+      <div class="section-head"><div class="section-title">Tous vos forfaits</div></div>
+      <div class="mini-list">
+        <div class="mini-row"><div class="mini-logo" style="background:#FFF0F0;color:#EF4444">F</div><div class="item-main"><div class="item-title">Freebox Pop</div><div class="item-sub">Internet · 01 23 45 67 89</div></div><span class="tag done">Actif</span></div>
+        <div class="mini-row"><div class="mini-logo" style="background:#FFF2EC;color:#E11D48">N</div><div class="item-main"><div class="item-title">Netflix Premium</div><div class="item-sub">Divertissement</div></div><span class="tag watch">À surveiller</span></div>
+        <div class="mini-row"><div class="mini-logo" style="background:#EAFBF2;color:#1DB954">♬</div><div class="item-main"><div class="item-title">Spotify Premium</div><div class="item-sub">Musique</div></div><span class="tag done">Actif</span></div>
+      </div>
+      <button class="add-plan" onclick="showScreen('capture')"><span class="plus-circle">+</span> Ajouter un forfait</button>
+    </section>
+
+    <section class="screen" id="screen-capture">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
+      <div class="title"><h1>Retenir</h1><p>Écrivez, dictez ou prenez une photo. Life Memory s’occupe du reste.</p></div>
+      <div class="capture-panel">
+        <textarea class="capture-area" id="captureText" placeholder="Ex : forfait mobile à 5,99€ pendant 12 mois puis 19,99€"></textarea>
+        <div class="capture-actions"><button class="small-btn">🎤 Voix</button><button class="small-btn">📷 Photo</button><button class="primary-btn" onclick="analyseCapture()">Analyser</button></div>
+        <div class="ai-card" id="aiCard"><div class="ai-title">Life Memory comprend</div><p>Promotion temporaire détectée. Je programme deux alertes pour éviter une hausse automatique.</p><div class="ai-grid"><div class="ai-field"><div class="ai-label">Type</div><div class="ai-val">Promo</div></div><div class="ai-field"><div class="ai-label">Économie</div><div class="ai-val">168€/an</div></div><div class="ai-field"><div class="ai-label">Rappel</div><div class="ai-val">J-30</div></div><div class="ai-field"><div class="ai-label">Statut</div><div class="ai-val">Surveillé</div></div></div><div class="capture-actions"><button class="small-btn" onclick="document.getElementById('aiCard').classList.remove('show')">Modifier</button><button class="primary-btn" onclick="toast('✓ Retenu · Je surveille pour vous')">Confirmer</button></div></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-share">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
+      <div class="top-row"><div class="title"><h1>Partage<br>intelligent</h1><p>Transmettez les bonnes infos,<br>à la bonne personne, au bon moment.</p></div><div class="round-info">i</div></div>
+      <div class="section-head"><div class="section-title">Partages en cours</div></div>
+      <div class="share-list">
+        <div class="list-item"><div class="avatar" style="background:var(--green)">M</div><div class="item-main"><div class="item-title">Marie (conjointe)</div><div class="item-sub">Accès complet<br>Depuis le 10/04/2025</div></div><span class="tag done">Actif</span><div class="dots">⋮</div></div>
+        <div class="list-item"><div class="avatar" style="background:#2B91C8">N</div><div class="item-main"><div class="item-title">Notaire Dupont</div><div class="item-sub">Accès successoral<br>Demandé le 08/05/2025</div></div><span class="tag watch">En attente</span><div class="dots">⋮</div></div>
+        <div class="list-item"><div class="avatar" style="background:#9B7BC6">A</div><div class="item-main"><div class="item-title">Antoine (fils)</div><div class="item-sub">Accès partiel<br>Depuis le 01/05/2025</div></div><span class="tag done">Actif</span><div class="dots">⋮</div></div>
+      </div>
+      <div class="big-action"><div class="iconbox">👥</div><div style="flex:1"><h3>Nouveau partage</h3></div><div class="chev">›</div></div>
+      <div class="section-head"><div class="section-title">Accès d’urgence</div></div>
+      <div class="emergency-card"><div class="iconbox">🛡️</div><div style="flex:1"><h3>Accès d'urgence</h3><p>Vos proches pourront accéder à vos infos critiques si nécessaire.</p><small>Configurer</small></div><div class="chev">›</div></div>
+    </section>
+
+    <section class="screen" id="screen-profile">
+      <div class="statusbar"><span>9:41</span><span class="status-icons">●●● ▰</span></div>
+      <div class="title"><h1>Profil</h1><p>Vos préférences et votre sécurité.</p></div>
+      <div class="profile-top"><div class="profile-avatar">E</div><div><div class="plan-name">Edrick</div><div class="plan-meta">Life Memory Pro</div></div></div>
+      <div class="stats"><div class="stat"><strong>10</strong><span>Retenus</span></div><div class="stat"><strong>8</strong><span>Surveillés</span></div><div class="stat"><strong>3h</strong><span>Charge libérée</span></div></div>
+      <div class="settings-list"><div class="list-item"><div class="iconbox" style="background:var(--blue-soft)">🧠</div><div class="item-main"><div class="item-title">Moteur de timing</div><div class="item-sub">Actif</div></div><span class="tag done">On</span></div><div class="list-item"><div class="iconbox" style="background:var(--green-soft)">🔐</div><div class="item-main"><div class="item-title">Sécurité & confidentialité</div><div class="item-sub">Vos données, vos règles</div></div><div class="chev">›</div></div></div>
+    </section>
+  </div>
+  <nav class="nav">
+    <button class="active" data-target="home" onclick="showScreen('home',this)"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"/></svg>Accueil</button>
+    <button data-target="plans" onclick="showScreen('plans',this)"><svg viewBox="0 0 24 24"><path d="M6 3h10l4 4v14H6z"/><path d="M16 3v5h5M9 13h6M9 17h6"/></svg>Forfaits</button>
+    <button data-target="capture" onclick="showScreen('capture',this)"><div class="add"><span>+</span></div></button>
+    <button data-target="share" onclick="showScreen('share',this)"><svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0M3 21a7 7 0 0 1 14 0M19 8v6M22 11h-6"/></svg>Partage</button>
+    <button data-target="profile" onclick="showScreen('profile',this)"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21a8 8 0 0 1 16 0"/></svg>Profil</button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+function showScreen(id,btn){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');if(btn){document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));btn.classList.add('active')}else{document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.target===id))}}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.__t);window.__t=setTimeout(()=>t.classList.remove('show'),2400)}
+function analyseCapture(){document.getElementById('aiCard').classList.add('show');toast('Analyse terminée')}
+</script>
+</body>
+</html>
